@@ -1,7 +1,11 @@
 fastapi
-uvicorn
+uvicorn[standard]
 langgraph
+langgraph-checkpoint-sqlite
 langchain-groq
+langchain-core
 tavily-python
 python-dotenv
 pydantic
+httpx
+aiofiles
