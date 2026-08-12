@@ -31,3 +31,7 @@ Thumbs.db
 # Checklists
 tasks.md
 task.md
+
+# Sample responses
+sample_responses/
+sample_response*.json

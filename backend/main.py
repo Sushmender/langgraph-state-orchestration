@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
     and attaches them to app.state so every request handler can access them
     without re-creating them.
     """
-    print("🚀  Starting LangGraph HITL Explorer backend...")
+
 
     # Validate required env vars
     groq_key = os.getenv("GROQ_API_KEY")
@@ -59,23 +59,23 @@ async def lifespan(app: FastAPI):
 
     # Initialise persistent checkpointer
     checkpointer = get_checkpointer()
-    print("✅  Checkpointer initialised (graph_state.db)")
+
 
     # Compile graph (interrupt_after ALL nodes by default — user can override per run)
     graph = build_graph(checkpointer=checkpointer)
-    print("✅  LangGraph compiled with default interrupt_after=ALL_NODES")
+
 
     # Store on app.state
     app.state.checkpointer = checkpointer
     app.state.graph = graph
     app.state.thread_interrupt_prefs = {}  # {thread_id: [node names]}
 
-    print("✅  Backend ready. Swagger UI: http://localhost:8000/docs\n")
+
 
     yield  # ← app is running while we're here
 
     # Shutdown cleanup (close DB connection gracefully)
-    print("🛑  Shutting down, closing SQLite connection...")
+
     checkpointer.conn.close()
 
 

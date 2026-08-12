@@ -13,7 +13,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from backend.graph.prompts import ALL_NODES, DEFAULT_INTERRUPT_AFTER, get_graph_schema
+# pyrefly: ignore [missing-import]
+from graph.prompts import ALL_NODES, DEFAULT_INTERRUPT_AFTER, get_graph_schema
 
 router = APIRouter(prefix="/graph", tags=["Graph Introspection"])
 

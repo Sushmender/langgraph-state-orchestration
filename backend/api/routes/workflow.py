@@ -24,7 +24,8 @@ from api.schemas import (
     WorkflowStatus,
     StateValues,
 )
-from backend.graph.prompts import ALL_NODES, DEFAULT_INTERRUPT_AFTER
+# pyrefly: ignore [missing-import]
+from graph.prompts import ALL_NODES, DEFAULT_INTERRUPT_AFTER
 
 router = APIRouter(prefix="/workflow", tags=["Workflow — HITL"])
 
