@@ -28,6 +28,9 @@ dist/
 ehthumbs.db
 Thumbs.db
 
+# Editor
+.vscode/
+
 # Checklists
 tasks.md
 task.md
