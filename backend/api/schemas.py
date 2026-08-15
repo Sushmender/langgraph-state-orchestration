@@ -168,9 +168,14 @@ class GraphSchemaResponse(BaseModel):
     default_interrupt_after: List[str]
 
 
+class ThreadInfo(BaseModel):
+    thread_id: str
+    task: Optional[str] = None
+
+
 class ThreadListResponse(BaseModel):
     """Response for GET /api/threads."""
-    threads: List[str]
+    threads: List[ThreadInfo]
     total: int
 
 

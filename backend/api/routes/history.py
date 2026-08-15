@@ -218,12 +218,12 @@ def time_travel(thread_id: str, body: TimeTravelRequest, request: Request):
 )
 def list_threads(request: Request):
     """
-    Query the SQLite checkpoint DB directly for distinct thread IDs.
-    LangGraph doesn't have a built-in list_threads() API, so we query
-    the underlying storage.
+    Query the SQLite checkpoint DB directly for distinct thread IDs,
+    then fetch the task for each from the graph state.
     """
     checkpointer = request.app.state.checkpointer
-    thread_ids = []
+    graph = _get_graph(request)
+    thread_infos = []
 
     try:
         # SqliteSaver stores checkpoints in a table — query it directly
@@ -232,11 +232,23 @@ def list_threads(request: Request):
             "SELECT DISTINCT thread_id FROM checkpoints ORDER BY thread_id"
         )
         thread_ids = [row[0] for row in cursor.fetchall()]
+        
+        for tid in thread_ids:
+            task = None
+            try:
+                state = graph.get_state(_make_thread_config(tid))
+                if state and hasattr(state, 'values') and hasattr(state.values, 'get'):
+                    task = state.values.get("task")
+                elif state and isinstance(state.values, dict):
+                    task = state.values.get("task")
+            except Exception:
+                pass
+            thread_infos.append({"thread_id": tid, "task": task})
     except Exception:
         # Fallback: if the table doesn't exist yet, return empty list
-        thread_ids = []
+        pass
 
-    return ThreadListResponse(threads=thread_ids, total=len(thread_ids))
+    return ThreadListResponse(threads=thread_infos, total=len(thread_infos))
 
 
 @router.delete(

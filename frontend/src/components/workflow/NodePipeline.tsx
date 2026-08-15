@@ -53,9 +53,9 @@ export function NodePipeline() {
                 <motion.div
                   className={cn(
                     'w-10 h-10 rounded-xl border-2 flex items-center justify-center text-base transition-all duration-500',
-                    status === 'active'    && 'node-active border-indigo-500',
+                    status === 'active'    && 'node-active border-[#7a1128]',
                     status === 'completed' && 'node-completed border-emerald-500',
-                    status === 'pending'   && 'node-pending border-slate-600'
+                    status === 'pending'   && 'node-pending border-[#2e1f1f]'
                   )}
                   animate={status === 'active' ? { scale: [1, 1.05, 1] } : {}}
                   transition={{ duration: 2, repeat: Infinity }}
@@ -63,7 +63,7 @@ export function NodePipeline() {
                   {status === 'completed' ? (
                     <Check className="w-4 h-4 text-emerald-400" />
                   ) : status === 'active' && (appStatus === 'polling' || appStatus === 'starting') ? (
-                    <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
+                    <Loader2 className="w-4 h-4 text-[#9c1a37] animate-spin" />
                   ) : (
                     <span className="text-base leading-none">{node.icon}</span>
                   )}
@@ -71,9 +71,9 @@ export function NodePipeline() {
                 <span
                   className={cn(
                     'text-xs font-medium text-center leading-tight max-w-[60px] truncate',
-                    status === 'active'    && 'text-indigo-300',
+                    status === 'active'    && 'text-[#9c1a37]',
                     status === 'completed' && 'text-emerald-300',
-                    status === 'pending'   && 'text-slate-600'
+                    status === 'pending'   && 'text-[#5a4a48]'
                   )}
                 >
                   {node.label}
@@ -86,7 +86,7 @@ export function NodePipeline() {
                   <div
                     className={cn(
                       'h-0.5 w-full rounded-full transition-all duration-700',
-                      status === 'completed' ? 'bg-emerald-500/60' : 'bg-slate-700'
+                      status === 'completed' ? 'bg-emerald-500/60' : 'bg-[#2e1f1f]'
                     )}
                   />
                 </div>

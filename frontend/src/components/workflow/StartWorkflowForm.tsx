@@ -67,7 +67,7 @@ export function StartWorkflowForm({ onClose }: Props) {
 
         {/* Modal */}
         <motion.div
-          className="relative w-full max-w-lg glass-strong rounded-2xl shadow-2xl shadow-indigo-500/20 overflow-hidden"
+          className="relative w-full max-w-lg glass-strong rounded-2xl shadow-2xl shadow-[#7a1128]/20 overflow-hidden"
           initial={{ scale: 0.95, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -93,8 +93,8 @@ export function StartWorkflowForm({ onClose }: Props) {
           <form onSubmit={handleSubmit} className="p-6 space-y-5">
             {/* Task input */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-2">
-                Essay Topic <span className="text-indigo-400">*</span>
+              <label className="block text-xs font-semibold text-[#e8e0da] mb-2">
+                Essay Topic <span className="text-[#9c1a37]">*</span>
               </label>
               <textarea
                 value={task}
@@ -102,9 +102,9 @@ export function StartWorkflowForm({ onClose }: Props) {
                 placeholder="e.g. The impact of artificial intelligence on modern healthcare…"
                 rows={3}
                 disabled={isLoading}
-                className="w-full bg-surface-700/60 border border-white/10 rounded-xl px-4 py-3
-                  text-sm text-slate-200 placeholder-slate-600 focus:outline-none
-                  focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30
+                className="w-full bg-surface-700/60 border border-[rgba(122,17,40,0.15)] rounded-xl px-4 py-3
+                  text-sm text-[#e8e0da] placeholder-[#5a4a48] focus:outline-none
+                  focus:border-[rgba(122,17,40,0.5)] focus:ring-1 focus:ring-[rgba(122,17,40,0.3)]
                   disabled:opacity-50 transition-colors"
               />
               {/* Example topics */}
@@ -115,8 +115,8 @@ export function StartWorkflowForm({ onClose }: Props) {
                     type="button"
                     onClick={() => setTask(t)}
                     disabled={isLoading}
-                    className="text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20
-                      text-indigo-400 hover:bg-indigo-500/20 transition-colors disabled:opacity-40"
+                    className="text-xs px-2.5 py-1 rounded-lg bg-[#7a1128]/10 border border-[rgba(122,17,40,0.2)]
+                      text-[#9c1a37] hover:bg-[#7a1128]/20 transition-colors disabled:opacity-40"
                   >
                     {t.length > 30 ? t.slice(0, 28) + '…' : t}
                   </button>
@@ -149,7 +149,7 @@ export function StartWorkflowForm({ onClose }: Props) {
                       <div>
                         <label className="flex items-center justify-between text-xs font-semibold text-slate-300 mb-2">
                           Max Revisions
-                          <span className="text-indigo-400 font-bold">{maxRevisions}</span>
+                          <span className="text-[#9c1a37] font-bold">{maxRevisions}</span>
                         </label>
                         <input
                           type="range" min={1} max={5} value={maxRevisions}
@@ -158,7 +158,7 @@ export function StartWorkflowForm({ onClose }: Props) {
                           className="w-full h-1.5 bg-surface-600 rounded-full appearance-none
                             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4
                             [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full
-                            [&::-webkit-slider-thumb]:bg-indigo-500 cursor-pointer"
+                            [&::-webkit-slider-thumb]:bg-[#7a1128] cursor-pointer"
                         />
                         <div className="flex justify-between text-xs text-slate-600 mt-1">
                           <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
@@ -175,23 +175,23 @@ export function StartWorkflowForm({ onClose }: Props) {
                             <label
                               key={node}
                               className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-700/50
-                                border border-white/5 cursor-pointer hover:border-indigo-500/30 transition-colors"
+                                border border-[rgba(122,17,40,0.1)] cursor-pointer hover:border-[rgba(122,17,40,0.3)] transition-colors"
                             >
                               <input
                                 type="checkbox"
                                 checked={interruptAfter.includes(node)}
                                 onChange={() => toggleNode(node)}
                                 disabled={isLoading}
-                                className="accent-indigo-500"
+                                className="accent-[#7a1128]"
                               />
-                              <span className="text-xs text-slate-300">{NODE_LABELS[node]}</span>
+                              <span className="text-xs text-[#e8e0da]">{NODE_LABELS[node]}</span>
                             </label>
                           ))}
                         </div>
                         <button
                           type="button"
                           onClick={() => setInterruptAfter(interruptAfter.length > 0 ? [] : ALL_NODES)}
-                          className="mt-2 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                          className="mt-2 text-xs text-[#9c1a37] hover:text-[#c4858e] transition-colors"
                         >
                           {interruptAfter.length > 0 ? 'Deselect all (autonomous)' : 'Select all'}
                         </button>
@@ -207,11 +207,10 @@ export function StartWorkflowForm({ onClose }: Props) {
               type="submit"
               disabled={!task.trim() || isLoading}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl
-                bg-gradient-to-r from-indigo-600 to-purple-600
-                hover:from-indigo-500 hover:to-purple-500
-                disabled:from-slate-700 disabled:to-slate-700 disabled:cursor-not-allowed
-                text-white font-semibold text-sm transition-all duration-200
-                shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40"
+                bg-[#7a1128] hover:bg-[#9c1a37]
+                disabled:bg-[#2e1f1f] disabled:cursor-not-allowed
+                text-[#e8e0da] font-semibold text-sm transition-all duration-200
+                shadow-lg shadow-[#7a1128]/20 hover:shadow-[#7a1128]/40"
             >
               {isLoading ? (
                 <>

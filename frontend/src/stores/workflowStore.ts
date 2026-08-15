@@ -8,17 +8,18 @@ import type {
   StateValues,
   GraphSchemaResponse,
   StateSnapshot,
+  ThreadInfo,
 } from '../types/api';
 
 export type AppStatus = 'idle' | 'starting' | 'polling' | 'paused' | 'resumed' | 'completed' | 'error';
 
 interface WorkflowStore {
   // ── Thread management ──────────────────────────────────────────────────────
-  threads: string[];
+  threads: ThreadInfo[];
   activeThreadId: string | null;
-  setThreads: (threads: string[]) => void;
+  setThreads: (threads: ThreadInfo[]) => void;
   setActiveThread: (id: string | null) => void;
-  addThread: (id: string) => void;
+  addThread: (thread: ThreadInfo) => void;
   removeThread: (id: string) => void;
 
   // ── Workflow state ─────────────────────────────────────────────────────────
@@ -40,6 +41,8 @@ interface WorkflowStore {
   setHistory: (snapshots: StateSnapshot[]) => void;
 
   // ── UI state ───────────────────────────────────────────────────────────────
+  activePanel: 'threads' | 'history' | 'graph' | 'state' | null;
+  setActivePanel: (panel: 'threads' | 'history' | 'graph' | 'state' | null) => void;
   activeStateTab: string;
   setActiveStateTab: (tab: string) => void;
   isEditModalOpen: boolean;
@@ -58,10 +61,10 @@ export const useWorkflowStore = create<WorkflowStore>((set) => ({
   activeThreadId: null,
   setThreads: (threads) => set({ threads }),
   setActiveThread: (id) => set({ activeThreadId: id }),
-  addThread: (id) => set((s) => ({ threads: [...s.threads.filter((t) => t !== id), id] })),
+  addThread: (thread) => set((s) => ({ threads: [...s.threads.filter((t) => t.thread_id !== thread.thread_id), thread] })),
   removeThread: (id) =>
     set((s) => ({
-      threads: s.threads.filter((t) => t !== id),
+      threads: s.threads.filter((t) => t.thread_id !== id),
       activeThreadId: s.activeThreadId === id ? null : s.activeThreadId,
     })),
 
@@ -84,6 +87,8 @@ export const useWorkflowStore = create<WorkflowStore>((set) => ({
   setHistory: (snapshots) => set({ history: snapshots }),
 
   // UI
+  activePanel: null,
+  setActivePanel: (panel) => set({ activePanel: panel }),
   activeStateTab: 'plan',
   setActiveStateTab: (tab) => set({ activeStateTab: tab }),
   isEditModalOpen: false,

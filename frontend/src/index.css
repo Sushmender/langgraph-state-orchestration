@@ -6,14 +6,14 @@
 
 /* ── Root Variables ─────────────────────────────────────────────────────── */
 :root {
-  --surface-900: #0a0f1e;
-  --surface-800: #0f172a;
-  --surface-700: #1e293b;
-  --surface-600: #273449;
-  --surface-500: #334155;
-  --brand-400: #818cf8;
-  --brand-500: #6366f1;
-  --brand-600: #4f46e5;
+  --surface-900: #121212;
+  --surface-800: #1c1414;
+  --surface-700: #231a1a;
+  --surface-600: #2e1f1f;
+  --surface-500: #3a2626;
+  --brand-400: #9c1a37;
+  --brand-500: #7a1128;
+  --brand-600: #5e0d1f;
   color-scheme: dark;
 }
 
@@ -28,7 +28,7 @@ html, body, #root {
 
 body {
   background-color: var(--surface-900);
-  color: #e2e8f0;
+  color: #e8e0da;
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -37,27 +37,27 @@ body {
 /* ── Scrollbar ────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #475569; }
+::-webkit-scrollbar-thumb { background: #2e1f1f; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a2626; }
 
 /* ── Glass card ───────────────────────────────────────────────────────── */
 .glass {
-  background: rgba(30, 41, 59, 0.6);
+  background: rgba(28, 20, 20, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(122, 17, 40, 0.18);
 }
 
 .glass-strong {
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(18, 18, 18, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(122, 17, 40, 0.22);
 }
 
 /* ── Gradient text ────────────────────────────────────────────────────── */
 .gradient-text {
-  background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #38bdf8 100%);
+  background: linear-gradient(135deg, #9c1a37 0%, #c0536a 50%, #e8e0da 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -65,7 +65,7 @@ body {
 
 /* ── Glow effects ─────────────────────────────────────────────────────── */
 .glow-indigo {
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4), 0 0 40px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 0 20px rgba(122, 17, 40, 0.35), 0 0 40px rgba(122, 17, 40, 0.15);
 }
 
 .glow-emerald {
@@ -78,8 +78,8 @@ body {
 
 /* ── Node status colors ───────────────────────────────────────────────── */
 .node-active {
-  border-color: #6366f1;
-  background: rgba(99, 102, 241, 0.15);
+  border-color: #7a1128;
+  background: rgba(122, 17, 40, 0.15);
   animation: nodeGlow 2s ease-in-out infinite alternate;
 }
 .node-completed {
@@ -87,8 +87,8 @@ body {
   background: rgba(52, 211, 153, 0.1);
 }
 .node-pending {
-  border-color: #475569;
-  background: rgba(71, 85, 105, 0.1);
+  border-color: #2e1f1f;
+  background: rgba(46, 31, 31, 0.2);
 }
 .node-error {
   border-color: #f87171;
@@ -96,13 +96,13 @@ body {
 }
 
 @keyframes nodeGlow {
-  from { box-shadow: 0 0 8px rgba(99,102,241,0.5), 0 0 16px rgba(99,102,241,0.2); }
-  to   { box-shadow: 0 0 16px rgba(99,102,241,0.9), 0 0 32px rgba(99,102,241,0.4); }
+  from { box-shadow: 0 0 8px rgba(122, 17, 40, 0.5), 0 0 16px rgba(122, 17, 40, 0.2); }
+  to   { box-shadow: 0 0 16px rgba(122, 17, 40, 0.9), 0 0 32px rgba(122, 17, 40, 0.4); }
 }
 
 /* ── Shimmer loading ─────────────────────────────────────────────────── */
 .shimmer {
-  background: linear-gradient(90deg, #1e293b 25%, #273449 50%, #1e293b 75%);
+  background: linear-gradient(90deg, #231a1a 25%, #2e1f1f 50%, #231a1a 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s linear infinite;
 }
@@ -111,7 +111,7 @@ body {
 .dot-pulse {
   width: 8px; height: 8px;
   border-radius: 50%;
-  background: #6366f1;
+  background: #7a1128;
   animation: dotPulse 1.4s ease-in-out infinite;
 }
 .dot-pulse:nth-child(2) { animation-delay: 0.2s; }
@@ -124,10 +124,10 @@ body {
 
 /* ── ReactFlow overrides ────────────────────────────────────────────── */
 .react-flow__background { background-color: var(--surface-900) !important; }
-.react-flow__controls { background: rgba(30,41,59,0.8) !important; border: 1px solid rgba(99,102,241,0.2) !important; }
-.react-flow__controls-button { background: transparent !important; border-color: rgba(99,102,241,0.2) !important; color: #94a3b8 !important; }
-.react-flow__controls-button:hover { background: rgba(99,102,241,0.1) !important; }
-.react-flow__edge-path { stroke: #4f46e5; stroke-width: 2; }
+.react-flow__controls { background: rgba(28, 20, 20, 0.85) !important; border: 1px solid rgba(122, 17, 40, 0.22) !important; }
+.react-flow__controls-button { background: transparent !important; border-color: rgba(122, 17, 40, 0.2) !important; color: #8f7f7c !important; }
+.react-flow__controls-button:hover { background: rgba(122, 17, 40, 0.12) !important; }
+.react-flow__edge-path { stroke: #7a1128; stroke-width: 2; }
 .react-flow__edge.animated .react-flow__edge-path { stroke-dasharray: 6 3; }
 
 /* ── Textarea ────────────────────────────────────────────────────────── */
@@ -138,6 +138,6 @@ textarea {
 }
 
 /* ── Prose overrides for dark mode ───────────────────────────────────── */
-.prose-dark h1, .prose-dark h2, .prose-dark h3 { color: #e2e8f0; }
-.prose-dark p { color: #cbd5e1; line-height: 1.75; }
-.prose-dark strong { color: #f1f5f9; }
+.prose-dark h1, .prose-dark h2, .prose-dark h3 { color: #e8e0da; }
+.prose-dark p { color: #c8bdb9; line-height: 1.75; }
+.prose-dark strong { color: #f0e8e4; }

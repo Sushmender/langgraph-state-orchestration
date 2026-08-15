@@ -49,12 +49,12 @@ export function TimeTravelModal() {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
-              <Clock className="w-4 h-4 text-violet-400" />
+            <div className="w-8 h-8 rounded-lg bg-[#7a1128]/15 flex items-center justify-center">
+              <Clock className="w-4 h-4 text-[#9c1a37]" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Time Travel</h3>
-              <p className="text-xs text-slate-400 mt-0.5">Fork from checkpoint</p>
+              <h3 className="text-base font-bold text-[#e8e0da]">Time Travel</h3>
+              <p className="text-xs text-[#8f7f7c] mt-0.5">Fork from checkpoint</p>
             </div>
           </div>
           <button onClick={closeTimeTravelModal} className="p-2 rounded-lg hover:bg-white/10 text-slate-400">
@@ -64,36 +64,36 @@ export function TimeTravelModal() {
 
         <div className="p-6 space-y-5">
           {/* Target info */}
-          <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
+          <div className="p-4 rounded-xl bg-[#7a1128]/10 border border-[rgba(122,17,40,0.2)]">
             <div className="flex items-center gap-2 mb-2">
-              <GitFork className="w-3.5 h-3.5 text-violet-400" />
-              <span className="text-xs font-semibold text-violet-300">Fork Target</span>
+              <GitFork className="w-3.5 h-3.5 text-[#9c1a37]" />
+              <span className="text-xs font-semibold text-[#9c1a37]">Fork Target</span>
             </div>
-            <div className="space-y-1 text-xs text-slate-400">
-              <div>Node: <span className="text-slate-200">{formatNode(timeTravelTarget.last_node)}</span></div>
-              <div>Step: <span className="text-slate-200">{timeTravelTarget.step}</span></div>
-              <div>Revision: <span className="text-slate-200">{timeTravelTarget.revision_number}</span></div>
-              <div>ID: <span className="text-slate-200 font-mono">{shortId(timeTravelTarget.checkpoint_id)}</span></div>
+            <div className="space-y-1 text-xs text-[#8f7f7c]">
+              <div>Node: <span className="text-[#e8e0da]">{formatNode(timeTravelTarget.last_node)}</span></div>
+              <div>Step: <span className="text-[#e8e0da]">{timeTravelTarget.step}</span></div>
+              <div>Revision: <span className="text-[#e8e0da]">{timeTravelTarget.revision_number}</span></div>
+              <div>ID: <span className="text-[#e8e0da] font-mono">{shortId(timeTravelTarget.checkpoint_id)}</span></div>
             </div>
           </div>
 
           {/* State overrides */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2">
-              State Overrides <span className="text-slate-600 font-normal">(optional JSON)</span>
+            <label className="block text-xs font-semibold text-[#e8e0da] mb-2">
+              State Overrides <span className="text-[#5a4a48] font-normal">(optional JSON)</span>
             </label>
             <textarea
               value={overridesJson}
               onChange={(e) => { setOverridesJson(e.target.value); setJsonError(''); }}
               placeholder={'{\n  "plan": "My new plan…"\n}'}
               rows={4}
-              className="w-full bg-surface-700/60 border border-white/10 rounded-xl px-4 py-3
-                text-xs font-mono text-slate-200 placeholder-slate-600 focus:outline-none
-                focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30 transition-colors"
+              className="w-full bg-surface-700/60 border border-[rgba(122,17,40,0.15)] rounded-xl px-4 py-3
+                text-xs font-mono text-[#e8e0da] placeholder-[#5a4a48] focus:outline-none
+                focus:border-[rgba(122,17,40,0.5)] focus:ring-1 focus:ring-[rgba(122,17,40,0.3)] transition-colors"
             />
             {jsonError && <p className="text-xs text-red-400 mt-1">{jsonError}</p>}
             {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
-            <p className="text-xs text-slate-600 mt-1.5">
+            <p className="text-xs text-[#5a4a48] mt-1.5">
               Optionally modify state values at this checkpoint before resuming.
             </p>
           </div>
@@ -102,7 +102,7 @@ export function TimeTravelModal() {
           <div className="flex gap-3">
             <button
               onClick={closeTimeTravelModal}
-              className="flex-1 py-2.5 rounded-xl border border-white/10 text-slate-400 hover:bg-white/5 text-sm font-medium transition-colors"
+              className="flex-1 py-2.5 rounded-xl border border-[rgba(122,17,40,0.2)] text-[#8f7f7c] hover:bg-[rgba(122,17,40,0.06)] text-sm font-medium transition-colors"
             >
               Cancel
             </button>
@@ -110,8 +110,8 @@ export function TimeTravelModal() {
               onClick={handleFork}
               disabled={isSaving}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl
-                bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500
-                disabled:opacity-50 text-white text-sm font-bold transition-all"
+                bg-[#7a1128] hover:bg-[#9c1a37]
+                disabled:opacity-50 text-[#e8e0da] text-sm font-bold transition-all"
             >
               {isSaving ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

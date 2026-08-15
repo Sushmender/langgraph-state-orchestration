@@ -110,8 +110,13 @@ export interface GraphConfigResponse {
   };
 }
 
+export interface ThreadInfo {
+  thread_id: string;
+  task: string | null;
+}
+
 export interface ThreadListResponse {
-  threads: string[];
+  threads: ThreadInfo[];
   total: number;
 }
 

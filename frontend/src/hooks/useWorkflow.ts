@@ -108,7 +108,7 @@ export function useWorkflow() {
         const status = await workflowApi.start(req);
         store.setWorkflowStatus(status);
         store.setActiveThread(status.thread_id);
-        store.addThread(status.thread_id);
+        store.addThread({ thread_id: status.thread_id, task: req.task });
 
         if (status.status === 'interrupted') {
           store.setAppStatus('paused');

@@ -16,7 +16,8 @@ function AppContent() {
 
   useEffect(() => {
     Promise.all([loadGraphSchema(), loadThreads()]).finally(() => setInitialized(true));
-  }, [loadGraphSchema, loadThreads]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="h-screen flex flex-col dark bg-surface-900">

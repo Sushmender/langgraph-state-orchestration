@@ -46,15 +46,15 @@ export function StateEditModal() {
         onClick={closeEditModal}
       />
       <motion.div
-        className="relative w-full max-w-2xl glass-strong rounded-2xl shadow-2xl shadow-indigo-500/20 overflow-hidden"
+        className="relative w-full max-w-2xl glass-strong rounded-2xl shadow-2xl shadow-[#7a1128]/20 overflow-hidden"
         initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 28 }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <div>
-            <h3 className="text-base font-bold text-white">Edit {meta.label}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">{meta.hint}</p>
+            <h3 className="text-base font-bold text-[#e8e0da]">Edit {meta.label}</h3>
+            <p className="text-xs text-[#8f7f7c] mt-0.5">{meta.hint}</p>
           </div>
           <button onClick={closeEditModal} className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
             <X className="w-4 h-4" />
@@ -75,13 +75,13 @@ export function StateEditModal() {
             value={value}
             onChange={(e) => setValue(e.target.value)}
             rows={meta.rows}
-            className="w-full bg-surface-700/60 border border-white/10 rounded-xl px-4 py-3
-              text-sm text-slate-200 placeholder-slate-600 focus:outline-none
-              focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-colors"
+            className="w-full bg-surface-700/60 border border-[rgba(122,17,40,0.15)] rounded-xl px-4 py-3
+              text-sm text-[#e8e0da] placeholder-[#5a4a48] focus:outline-none
+              focus:border-[rgba(122,17,40,0.5)] focus:ring-1 focus:ring-[rgba(122,17,40,0.3)] transition-colors"
             placeholder={`Enter the new ${meta.label.toLowerCase()}…`}
           />
           <div className="flex items-center justify-between mt-1">
-            <span className="text-xs text-slate-600">{value.length} chars</span>
+            <span className="text-xs text-[#5a4a48]">{value.length} chars</span>
             {error && <span className="text-xs text-red-400">{error}</span>}
           </div>
         </div>
@@ -90,8 +90,8 @@ export function StateEditModal() {
         <div className="flex gap-3 px-6 pb-5">
           <button
             onClick={closeEditModal}
-            className="flex-1 py-2.5 rounded-xl border border-white/10 text-slate-400
-              hover:bg-white/5 text-sm font-medium transition-colors"
+            className="flex-1 py-2.5 rounded-xl border border-[rgba(122,17,40,0.2)] text-[#8f7f7c]
+              hover:bg-[rgba(122,17,40,0.06)] text-sm font-medium transition-colors"
           >
             Cancel
           </button>
@@ -99,8 +99,8 @@ export function StateEditModal() {
             onClick={handleSave}
             disabled={isSaving}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl
-              bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500
-              disabled:opacity-50 text-white text-sm font-bold transition-all shadow-lg shadow-indigo-500/20"
+              bg-[#7a1128] hover:bg-[#9c1a37]
+              disabled:opacity-50 text-[#e8e0da] text-sm font-bold transition-all shadow-lg shadow-[#7a1128]/20"
           >
             {isSaving ? (
               <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…</>

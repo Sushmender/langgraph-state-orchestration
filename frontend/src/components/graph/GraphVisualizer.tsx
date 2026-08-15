@@ -1,6 +1,8 @@
 /**
  * components/graph/GraphVisualizer.tsx
  * ReactFlow canvas showing the 5-node LangGraph pipeline.
+ * Improvements: wider node spacing, higher default zoom, bezier edges,
+ * larger edge label font with background padding so text never overlaps lines.
  */
 import { useMemo } from 'react';
 import {
@@ -18,15 +20,16 @@ import { GraphNode } from './GraphNode.tsx';
 
 const nodeTypes = { hitlNode: GraphNode };
 
+// Wider, taller spacing so nodes breathe and labels don't intersect edges
 const BASE_POSITIONS: Record<string, { x: number; y: number }> = {
-  planner:           { x: 60,  y: 120 },
-  research_plan:     { x: 240, y: 120 },
-  generate:          { x: 420, y: 120 },
-  reflect:           { x: 420, y: 260 },
-  research_critique: { x: 240, y: 260 },
+  planner:           { x: 40,  y: 100 },
+  research_plan:     { x: 280, y: 100 },
+  generate:          { x: 520, y: 100 },
+  reflect:           { x: 520, y: 280 },
+  research_critique: { x: 280, y: 280 },
 };
 
-const EDGE_STYLE = { stroke: '#4f46e5', strokeWidth: 2 };
+const EDGE_STYLE = { stroke: '#7a1128', strokeWidth: 2 };
 const COND_STYLE = { stroke: '#f59e0b', strokeWidth: 2, strokeDasharray: '6 3' };
 
 export function GraphVisualizer() {
@@ -68,7 +71,7 @@ export function GraphVisualizer() {
     const edgeList = graphSchema?.edges ?? [
       { from: 'planner',           to: 'research_plan',     type: 'fixed' },
       { from: 'research_plan',     to: 'generate',          type: 'fixed' },
-      { from: 'generate',          to: 'reflect',           type: 'conditional', condition: 'revision ≤ max' },
+      { from: 'generate',          to: 'reflect',           type: 'conditional', condition: 'revision_number ≤ max_revisions' },
       { from: 'generate',          to: '__end__',           type: 'conditional', condition: 'revision > max' },
       { from: 'reflect',           to: 'research_critique', type: 'fixed' },
       { from: 'research_critique', to: 'generate',          type: 'fixed' },
@@ -83,9 +86,20 @@ export function GraphVisualizer() {
         type: 'smoothstep',
         style: e.type === 'conditional' ? COND_STYLE : EDGE_STYLE,
         label: e.condition,
-        labelStyle: { fill: '#f59e0b', fontSize: 9, fontFamily: 'JetBrains Mono' },
-        labelBgStyle: { fill: 'rgba(15,23,42,0.8)' },
-        markerEnd: { type: MarkerType.ArrowClosed, color: e.type === 'conditional' ? '#f59e0b' : '#4f46e5' },
+        labelStyle: {
+          fill: '#f59e0b',
+          fontSize: 11,
+          fontFamily: 'JetBrains Mono, monospace',
+          fontWeight: 600,
+        },
+        labelBgStyle: { fill: 'rgba(17,12,12,0.92)', rx: 4 },
+        labelBgPadding: [6, 4] as [number, number],
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: e.type === 'conditional' ? '#f59e0b' : '#7a1128',
+          width: 16,
+          height: 16,
+        },
       }));
   }, [graphSchema]);
 
@@ -96,9 +110,10 @@ export function GraphVisualizer() {
         edges={edges}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.3 }}
-        minZoom={0.5}
-        maxZoom={1.5}
+        fitViewOptions={{ padding: 0.45 }}
+        defaultViewport={{ x: 0, y: 0, zoom: 1.1 }}
+        minZoom={0.4}
+        maxZoom={2}
         nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable={false}
@@ -106,9 +121,9 @@ export function GraphVisualizer() {
       >
         <Background
           variant={BackgroundVariant.Dots}
-          gap={20}
-          size={1}
-          color="#1e293b"
+          gap={24}
+          size={1.2}
+          color="#231a1a"
         />
         <Controls showInteractive={false} />
       </ReactFlow>
