@@ -263,6 +263,11 @@ def delete_thread(thread_id: str, request: Request):
     checkpointer = request.app.state.checkpointer
     try:
         conn = checkpointer.conn
+        try:
+            conn.execute("DELETE FROM checkpoint_blobs WHERE thread_id = ?", (thread_id,))
+            conn.execute("DELETE FROM checkpoint_writes WHERE thread_id = ?", (thread_id,))
+        except Exception:
+            pass  # Older langgraph versions might not have these tables
         conn.execute("DELETE FROM checkpoints WHERE thread_id = ?", (thread_id,))
         conn.commit()
     except Exception as e:

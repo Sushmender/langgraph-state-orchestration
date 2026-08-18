@@ -10,7 +10,9 @@ PLAN_PROMPT = (
     "You are an expert writer tasked with writing a high level outline of a short "
     "3 paragraph essay. Write such an outline for the user provided topic. Give the "
     "three main headers of an outline of the essay along with any relevant notes or "
-    "instructions for the sections."
+    "instructions for the sections. Format the outline using standard Markdown, "
+    "wrapping the main roman-numeral headers as markdown headers (e.g. '## I. Introduction') "
+    "and separating paragraphs with blank lines."
 )
 
 RESEARCH_PLAN_PROMPT = (

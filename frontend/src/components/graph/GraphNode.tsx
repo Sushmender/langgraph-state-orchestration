@@ -1,13 +1,6 @@
-/**
- * components/graph/GraphNode.tsx
- * Custom ReactFlow node for LangGraph HITL nodes.
- * Improvements: wider boxes (150px), larger icon (2xl), larger label (sm),
- * styled hover tooltip instead of browser title.
- */
 import { memo, useState } from 'react';
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '../../lib/utils';
 
 interface NodeData extends Record<string, unknown> {
   label: string;
@@ -17,101 +10,167 @@ interface NodeData extends Record<string, unknown> {
   isNext: boolean;
   isCompleted: boolean;
 }
-
 type GraphNodeType = Node<NodeData, 'hitlNode'>;
 
+// â”€â”€ Dimensions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Node dimensions (uniform for ALL nodes)
+const NW = 130, NH = 50;
+
+// â”€â”€ Theme (all inline to avoid Tailwind purge issues) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+interface Theme { bg: string; border: string; text: string; ring: string }
+
+function getBaseTheme(label: string): Theme {
+  if (label === 'Done')
+    return { bg: '#1e3a8a', border: '#3b82f6', text: '#bfdbfe', ring: '#60a5fa' };
+  if (label === 'Reflect' || label === 'Research Critique')
+    return { bg: '#3b1c10', border: '#9a4523', text: '#f0a880', ring: '#c2714f' };
+  // Planner, Researcher, Generate
+  return { bg: '#0f2d1e', border: '#2d7a50', text: '#6ee7a0', ring: '#3d8c5e' };
+}
+
+function resolveTheme(base: Theme, isActive: boolean, isCompleted: boolean, isNext: boolean): Theme {
+  if (isActive) return { ...base, border: 'rgba(255,255,255,0.55)', text: '#ffffff' };
+  if (isCompleted) return { ...base, border: '#10b981', text: '#6ee7b7' };
+  if (isNext && !isActive) return { ...base, border: 'rgba(245,158,11,0.55)', text: '#fbbf24' };
+  return base;
+}
+
+// â”€â”€ Invisible handle helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// cx/cy = desired center of the handle dot, relative to the node container.
+function Hdl({
+  id, type, cx, cy,
+}: { id: string; type: 'source' | 'target'; cx: number; cy: number }) {
+  return (
+    <Handle
+      id={id}
+      type={type}
+      position={Position.Top}          // position prop irrelevant for type:'straight'
+      style={{
+        position: 'absolute',
+        top: cy - 4,                  // half of 8px handle
+        left: cx - 4,
+        width: 8, height: 8,
+        transform: 'none',
+        opacity: 0,
+        minWidth: 0, minHeight: 0,
+        border: 'none', background: 'transparent',
+      }}
+    />
+  );
+}
+
+// Single rectangle NodeBox — used for every node
+function NodeBox({ d }: { d: NodeData }) {
+  const base = getBaseTheme(d.label);
+  const theme = resolveTheme(base, d.isActive, d.isCompleted, d.isNext);
+
+  return (
+    <motion.div
+      style={{
+        position: 'relative',
+        width: NW, height: NH,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        borderRadius: 8,
+        border: `2px solid ${theme.border}`,
+        backgroundColor: theme.bg,
+        cursor: 'default', userSelect: 'none',
+      }}
+      animate={d.isActive ? { scale: [1, 1.04, 1] } : {}}
+      transition={{ duration: 2, repeat: Infinity }}
+    >
+      {d.isActive && (
+        <motion.div
+          style={{
+            position: 'absolute', inset: -2, borderRadius: 10,
+            border: `2px solid ${base.ring}`, pointerEvents: 'none',
+          }}
+          animate={{ scale: [1, 1.14], opacity: [0.8, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        />
+      )}
+
+      {/* 8 invisible handles — all sides for flexible routing. 
+          Outward offsets prevent arrow clipping. Bottom handles spread to prevent overlap. */}
+      <Hdl id="target-left" type="target" cx={-4} cy={NH / 2} />
+      <Hdl id="source-right" type="source" cx={NW + 4} cy={NH / 2} />
+      <Hdl id="target-right" type="target" cx={NW + 4} cy={NH / 2} />
+      <Hdl id="source-left" type="source" cx={-4} cy={NH / 2} />
+
+      <Hdl id="target-top" type="target" cx={NW / 2} cy={-4} />
+      <Hdl id="source-top" type="source" cx={NW / 2} cy={-4} />
+
+      {/* Spread bottom handles: RC hits bottom-left, Reflect leaves from bottom-right */}
+      <Hdl id="target-bottom" type="target" cx={NW / 2 - 20} cy={NH + 5} />
+      <Hdl id="source-bottom" type="source" cx={NW / 2 + 20} cy={NH + 5} />
+
+      <span style={{
+        fontSize: 11,
+        fontWeight: 800,
+        color: theme.text,
+        fontFamily: 'Inter, system-ui, sans-serif',
+        letterSpacing: '0.07em',
+        textTransform: 'uppercase',
+        textAlign: 'center',
+        paddingInline: 6,
+        lineHeight: 1.2,
+      }}>
+        {d.label}
+      </span>
+    </motion.div>
+  );
+}
+
+// ————————————————————————————————— Main export ——————————————————————————————————————————————
 export const GraphNode = memo(({ data }: NodeProps<GraphNodeType>) => {
   const d = data;
   const [hovered, setHovered] = useState(false);
-
-  const ICON: Record<string, string> = {
-    Planner: '🗺️',
-    'Research Plan': '🔍',
-    Generate: '✍️',
-    Reflect: '🪞',
-    'Research Critique': '🔬',
-  };
-
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const tooltipText = d.hitl_note || d.description;
 
   return (
     <div
-      className="relative"
+      style={{ position: 'relative', pointerEvents: 'all' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onMouseMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      }}
     >
-      <motion.div
-        className={cn(
-          'relative px-4 py-3 rounded-xl border-2 min-w-[150px] max-w-[160px] text-center',
-          'transition-all duration-500 cursor-default select-none',
-          d.isActive    && 'node-active border-[#7a1128]',
-          d.isCompleted && 'node-completed border-emerald-500',
-          d.isNext      && !d.isActive && 'border-amber-500/50 bg-amber-500/5',
-          !d.isActive && !d.isCompleted && !d.isNext && 'node-pending border-[#2e1f1f]'
-        )}
-        animate={d.isActive ? { scale: [1, 1.03, 1] } : {}}
-        transition={{ duration: 2, repeat: Infinity }}
-      >
-        <Handle type="target" position={Position.Left}  className="!bg-[#7a1128] !border-[#5e0d1f] !w-2.5 !h-2.5" />
-        <Handle type="target" position={Position.Top}   className="!bg-[#7a1128] !border-[#5e0d1f] !w-2.5 !h-2.5" />
+      <NodeBox d={d} />
 
-        {/* Icon */}
-        <div className="text-2xl mb-1.5 leading-none">{ICON[d.label] ?? '⚙️'}</div>
-
-        {/* Label */}
-        <div
-          className={cn(
-            'text-sm font-semibold leading-snug',
-            d.isActive    && 'text-[#e8e0da]',
-            d.isCompleted && 'text-emerald-200',
-            d.isNext      && !d.isActive && 'text-amber-300',
-            !d.isActive && !d.isCompleted && !d.isNext && 'text-[#8f7f7c]'
-          )}
-        >
-          {d.label}
-        </div>
-
-        {/* Active pulse ring */}
-        {d.isActive && (
-          <motion.div
-            className="absolute inset-0 rounded-xl border-2 border-[#9c1a37]"
-            animate={{ scale: [1, 1.18], opacity: [0.8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          />
-        )}
-
-        {/* Status dot */}
-        {(d.isActive || d.isCompleted) && (
-          <div
-            className={cn(
-              'absolute -top-1.5 -right-1.5 w-3 h-3 rounded-full border-2 border-surface-800',
-              d.isActive    && 'bg-[#7a1128] animate-pulse',
-              d.isCompleted && 'bg-emerald-400'
-            )}
-          />
-        )}
-
-        <Handle type="source" position={Position.Right}  className="!bg-[#7a1128] !border-[#5e0d1f] !w-2.5 !h-2.5" />
-        <Handle type="source" position={Position.Bottom} className="!bg-[#7a1128] !border-[#5e0d1f] !w-2.5 !h-2.5" />
-      </motion.div>
-
-      {/* Styled hover tooltip */}
+      {/* Hover tooltip - following the mouse cursor */}
       <AnimatePresence>
         {hovered && tooltipText && (
           <motion.div
-            initial={{ opacity: 0, y: 6, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 pointer-events-none"
+            initial={{ opacity: 0, scale: 0.95, y: 5 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 5 }}
+            transition={{ duration: 0.1 }}
+            style={{
+              position: 'absolute',
+              top: mousePos.y + 15,
+              left: mousePos.x + 15,
+              zIndex: 50,
+              pointerEvents: 'none',
+              width: 'max-content',
+            }}
           >
-            <div className="bg-[#1c1414] border border-[rgba(122,17,40,0.35)] rounded-xl px-3 py-2
-              text-xs text-[#e8e0da] max-w-[220px] text-center shadow-xl leading-relaxed">
+            <div style={{
+              background: 'rgba(20, 20, 20, 0.95)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: 8,
+              padding: '8px 12px',
+              fontSize: 12,
+              color: '#f3f4f6',
+              maxWidth: 220,
+              textAlign: 'left',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+              lineHeight: 1.4,
+              fontFamily: 'Inter, system-ui, sans-serif',
+            }}>
               {tooltipText}
             </div>
-            {/* Caret */}
-            <div className="w-0 h-0 mx-auto border-l-[6px] border-r-[6px] border-t-[6px]
-              border-l-transparent border-r-transparent border-t-[#1c1414]" />
           </motion.div>
         )}
       </AnimatePresence>
