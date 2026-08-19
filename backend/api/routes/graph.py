@@ -47,7 +47,7 @@ def graph_config():
         "default_interrupt_after": DEFAULT_INTERRUPT_AFTER,
         "default_max_revisions": 2,
         "max_revisions_cap": 5,
-        "llm_model": "llama-3.3-70b-versatile",
+        "llm_model": "qwen/qwen3.6-27b",
         "llm_provider": "Groq",
         "search_provider": "Tavily",
         "description": (

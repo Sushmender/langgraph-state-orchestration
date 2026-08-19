@@ -40,8 +40,8 @@ export function StartWorkflowForm({ onClose }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!task.trim()) return;
-    await startWorkflow({ task: task.trim(), max_revisions: maxRevisions, interrupt_after: interruptAfter });
-    if (!isLoading) onClose();
+    onClose(); // ← close immediately, don't make user wait for planner
+    startWorkflow({ task: task.trim(), max_revisions: maxRevisions, interrupt_after: interruptAfter });
   };
 
   const exampleTopics = [

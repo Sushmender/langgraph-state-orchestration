@@ -2,7 +2,7 @@
 graph/nodes.py
 --------------
 The five node functions that form the essay-writing pipeline, plus the
-conditional edge function.  All LLM calls use Groq (llama-3.3-70b-versatile)
+conditional edge function.  All LLM calls use Groq (qwen/qwen3.6-27b)
 instead of OpenAI — keys already verified in api_check.py.
 
 Each node returns a *partial* dict; LangGraph merges it into AgentState.
@@ -10,11 +10,12 @@ The `count` field uses operator.add so returning {"count": 1} increments.
 """
 from __future__ import annotations
 
+import json
 import os
+import re
 from typing import List
 
 from langchain_core.messages import HumanMessage, SystemMessage
-from pydantic import BaseModel
 from langchain_groq import ChatGroq
 from langgraph.graph import END
 from tavily import TavilyClient
@@ -34,17 +35,75 @@ from graph.prompts import (
 from graph.state import AgentState
 
 
-# ── Pydantic model for structured search query output ────────────────────────
-class Queries(BaseModel):
-    queries: List[str]
+# ── Helper: strip Qwen's <think>...</think> reasoning traces ────────────────
+def _strip_thinking(text: str) -> str:
+    """
+    Qwen3 wraps chain-of-thought in <think>...</think> before the answer.
+    We strip that block so only the clean answer is stored in AgentState.
+
+    Handles three cases:
+      1. Proper <think>...</think>  → take everything AFTER </think>
+      2. <think> with no closing tag → strip the opening tag, return remainder
+      3. No tags at all          → return as-is
+    """
+    if '</think>' in text:
+        return text.split('</think>', 1)[1].strip()
+    # Opening tag present but no closing — strip the tag and return the rest
+    cleaned = re.sub(r'<\s*think[^>]*>', '', text, flags=re.IGNORECASE)
+    return cleaned.strip()
 
 
-# ── Shared clients (initialised lazily per request to stay thread-safe) ───────
+# ── Helper: parse search queries from LLM plain-text response ───────────────
+def _parse_queries(raw: str) -> List[str]:
+    """
+    Strip thinking traces first, then try JSON, then numbered/bulleted list,
+    then newline-split as a last resort.
+    Returns a list of query strings.
+    """
+    text = _strip_thinking(raw)
+
+    # 1. JSON extraction — handles both bare JSON and markdown-fenced blocks
+    #    Use a greedy match so we capture the full array even with newlines.
+    json_match = re.search(r'\{[^{}]*\}', text, re.DOTALL)
+    if json_match:
+        try:
+            data = json.loads(json_match.group())
+            queries = data.get("queries") or data.get("search_queries") or []
+            if isinstance(queries, list) and queries:
+                # Filter out any placeholders like "query 1", "search term 1", etc.
+                real = [
+                    str(q).strip() for q in queries
+                    if str(q).strip() and not re.match(
+                        r'^(query|search[_ ]?(query|term|string)?)[\s_]?\d*$',
+                        str(q).strip(), re.IGNORECASE
+                    )
+                ]
+                if real:
+                    return real
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+    # 2. Numbered / bulleted list fallback  (e.g. '1. "AI in agriculture"')
+    queries = re.findall(
+        r'(?:^|\n)\s*(?:\d+[.)\-]|-|\*)\s*["\u201c\u201d]?([^"\'\n\u201c\u201d]{10,})["\u201c\u201d]?',
+        text,
+    )
+    if queries:
+        return [q.strip().strip('"\u201c\u201d\' ') for q in queries if q.strip()]
+
+    # 3. Last resort: non-empty lines
+    return [ln.strip().strip('"\' ') for ln in text.splitlines() if len(ln.strip()) > 5]
+
+
+# ── Shared clients (initialised lazily per request to stay thread-safe) ───────────
 def _get_llm() -> ChatGroq:
     return ChatGroq(
-        model="llama-3.3-70b-versatile",
+        model="qwen/qwen3.6-27b",
         temperature=0,
         api_key=os.environ["GROQ_API_KEY"],
+        # Disable Qwen's extended thinking mode so responses contain
+        # only the final answer — no <think>...</think> traces.
+        reasoning_effort="none",
     )
 
 
@@ -65,7 +124,7 @@ def plan_node(state: AgentState) -> dict:
     ]
     response = llm.invoke(messages)
     return {
-        "plan": response.content,
+        "plan": _strip_thinking(response.content),
         "lnode": NODE_PLANNER,
         "count": 1,
     }
@@ -81,22 +140,30 @@ def research_plan_node(state: AgentState) -> dict:
     llm = _get_llm()
     tavily = _get_tavily()
 
-    queries: Queries = llm.with_structured_output(Queries).invoke(
+    response = llm.invoke(
         [
             SystemMessage(content=RESEARCH_PLAN_PROMPT),
-            HumanMessage(content=state["task"]),
+            HumanMessage(
+                content=(
+                    f"{state['task']}\n\n"
+                    "Output a JSON object with a single key 'queries' whose value is "
+                    "a JSON array of real search engine query strings relevant to the topic above. "
+                    "Do NOT include placeholder text. Output raw JSON only, no markdown fences."
+                )
+            ),
         ]
     )
+    query_list = _parse_queries(response.content)
 
     content: List[str] = list(state.get("content") or [])
-    for q in queries.queries:
+    for q in query_list:
         results = tavily.search(query=q, max_results=2)
         for r in results["results"]:
             content.append(r["content"])
 
     return {
         "content": content,
-        "queries": queries.queries,
+        "queries": query_list,
         "lnode": NODE_RESEARCH_PLAN,
         "count": 1,
     }
@@ -120,7 +187,7 @@ def generation_node(state: AgentState) -> dict:
     ]
     response = llm.invoke(messages)
     return {
-        "draft": response.content,
+        "draft": _strip_thinking(response.content),
         "revision_number": state.get("revision_number", 1) + 1,
         "lnode": NODE_GENERATE,
         "count": 1,
@@ -141,7 +208,7 @@ def reflection_node(state: AgentState) -> dict:
     ]
     response = llm.invoke(messages)
     return {
-        "critique": response.content,
+        "critique": _strip_thinking(response.content),
         "lnode": NODE_REFLECT,
         "count": 1,
     }
@@ -158,22 +225,31 @@ def research_critique_node(state: AgentState) -> dict:
     llm = _get_llm()
     tavily = _get_tavily()
 
-    queries: Queries = llm.with_structured_output(Queries).invoke(
+    response = llm.invoke(
         [
             SystemMessage(content=RESEARCH_CRITIQUE_PROMPT),
-            HumanMessage(content=state["critique"]),
+            HumanMessage(
+                content=(
+                    f"{state['critique']}\n\n"
+                    "Output a JSON object with a single key 'queries' whose value is "
+                    "a JSON array of real search engine query strings that would find "
+                    "information to address the critique above. "
+                    "Do NOT include placeholder text. Output raw JSON only, no markdown fences."
+                )
+            ),
         ]
     )
+    query_list = _parse_queries(response.content)
 
     content: List[str] = list(state.get("content") or [])
-    for q in queries.queries:
+    for q in query_list:
         results = tavily.search(query=q, max_results=2)
         for r in results["results"]:
             content.append(r["content"])
 
     return {
         "content": content,
-        "queries": queries.queries,
+        "queries": query_list,
         "lnode": NODE_RESEARCH_CRITIQUE,
         "count": 1,
     }

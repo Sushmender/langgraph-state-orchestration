@@ -1,230 +1,632 @@
-# LangGraph HITL Explorer - Frontend Walkthrough Guide
+# 🧠 LangGraph HITL Explorer — Complete User Guide
 
-Welcome to the **LangGraph HITL (Human-In-The-Loop) Explorer**! 
-
-This guide is designed to help you, the user, get the absolute most out of the frontend experience. We will walk through the entire application step-by-step, explaining the power of each feature. 
-
-Assuming your backend is running (`http://localhost:8000`) and your frontend is running (`http://localhost:5173`), you're ready to experience AI workflows where **you** hold the reins!
+> **You are not just prompting an AI. You are *orchestrating* one.**
+> This guide will take you from zero to a completed, human-steered AI essay — step by step.
 
 ---
 
-## 🌟 The Philosophy
+## 📖 Table of Contents
 
-Normally, AI agents execute entirely in a black box. They think, they act, and they produce a final output. If they go off-track, there's nothing you can do until they finish.
-
-**Not anymore.** 
-
-This platform allows you to:
-1. **Pause** the AI mid-thought.
-2. **Inspect** exactly what it's planning, drafting, or critiquing.
-3. **Modify** its internal state (change its plan, rewrite a section of its draft).
-4. **Resume** the workflow as if the AI came up with your ideas itself.
-5. **Time Travel** to past decisions and fork new paths!
-
-Let's dive into the core features.
+1. [What Is This?](#what-is-this)
+2. [How to Start](#how-to-start)
+3. [Understanding the UI](#understanding-the-ui)
+4. [Step-by-Step Walkthrough](#step-by-step-walkthrough)
+5. [HITL Superpowers](#hitl-superpowers--what-you-can-do-at-each-pause)
+6. [Time Travel & History](#time-travel--history)
+7. [Tips, Tricks & Sample Edits](#tips-tricks--sample-edits)
+8. [What's Happening Under the Hood](#whats-happening-under-the-hood)
+9. [Quick Reference Card](#quick-reference-card)
 
 ---
 
-## 🚀 Feature 1: Starting a New Workflow Thread
+## 🌟 What Is This?
 
-Every workflow lives in a dedicated "Thread". To start, look for the main input area on the dashboard. 
+This is an **AI-powered essay writing system** built with **LangGraph** and a **Human-In-The-Loop (HITL)** architecture.
 
-### How to use it:
-1. Find the **"Start New Run"** or **"Topic"** input on the main dashboard.
-2. Enter a topic you want the AI to write an essay about (e.g., *"The Impact of AI on Modern Agriculture"*).
-3. Hit **Submit**.
+### The Problem It Solves
 
-### What happens under the hood (API Context):
-The frontend makes a call to start the graph execution.
-
-**Endpoint:** `POST /api/workflow/start`
-**Sample Payload:**
-```json
-{
-  "topic": "The Impact of AI on Modern Agriculture"
-}
+Traditional AI agents are a black box:
 ```
-**Expected Response:**
-```json
-{
-  "thread_id": "123e4567-e89b-12d3-a456-426614174000",
-  "status": "running"
-}
+You type → [AI does everything in secret] → You get output ❌ (no control)
 ```
 
-*Enthusiast Tip:* Notice how quickly the thread is created. The AI is now working on the first node of the graph (usually creating an initial plan).
+This system breaks that:
+```
+You type → AI plans → ⏸️ YOU REVIEW → AI researches → ⏸️ YOU REVIEW
+→ AI drafts → ⏸️ YOU REVIEW/EDIT → AI critiques → ⏸️ YOU REVIEW/EDIT
+→ AI revises → 🏁 DONE ✅ (full transparency + control)
+```
+
+> 💡 **Key Insight:** At every `⏸️` pause, you can read, edit, or override what the AI produced.
+> The AI will accept your edits as **its own reality** and continue from there.
 
 ---
 
-## ⏸️ Feature 2: Human-In-The-Loop (HITL) Interruption
+## 🚀 How to Start
 
-The AI is configured to pause after specific steps (nodes) so you can review its work. Once a step is complete, the status changes to `interrupted`.
+### Prerequisites — Make sure both servers are running:
 
-### How to use it:
-1. On your thread dashboard, you'll see a visual graph or a timeline.
-2. The current active step will highlight, and the workflow status will show as **Paused** or **Interrupted**.
-3. You can click on the current node to view why it paused.
+```bash
+# Terminal 1 — Backend
+cd backend
+uvicorn main:app --reload
+# → Running at http://localhost:8000
 
-### What happens under the hood (API Context):
-The frontend polls or fetches the status to see where the workflow currently sits.
-
-**Endpoint:** `GET /api/workflow/{thread_id}/status`
-**Expected Response:**
-```json
-{
-  "thread_id": "123e4567-e89b-12d3-a456-426614174000",
-  "status": "interrupted",
-  "next_nodes": ["draft_essay"],
-  "current_node": "plan_essay"
-}
+# Terminal 2 — Frontend
+cd frontend
+npm run dev
+# → Running at http://localhost:5173
 ```
+
+### Starting Your First Workflow
+
+1. Open your browser at **`http://localhost:5173`**
+2. Find the topic input field on the main dashboard
+3. Type your essay topic. Here are great examples to try:
+
+| 🟢 Sample Topic | 💬 Why It Works Well |
+|---|---|
+| `The Impact of AI on Modern Agriculture` | Broad, lots of real research data |
+| `Climate Change and Renewable Energy Policy` | Multi-angle, great for critique cycles |
+| `The Ethics of Autonomous Vehicles` | Perfect for HITL debate-steering |
+| `Social Media's Effect on Mental Health` | Data-rich, many studies available |
+| `Blockchain Technology in Supply Chains` | Technical + business angle mix |
+
+4. Set **Max Revisions** (default: `2`) — how many critique→revise cycles will run
+5. Click **Start** — the modal closes instantly and the AI begins working ✅
+
+> ⚠️ **Note:** After clicking Start, the modal closes immediately and you land on the workspace. Wait 5–10 seconds for the Planner to finish — the status bar shows `🟢 Running` while it thinks.
 
 ---
 
-## 🔍 Feature 3: State Inspection
+## 🖥️ Understanding the UI
 
-When the workflow is paused, it's time to peek inside the AI's "brain" to see what it generated.
+When the workflow is paused, you'll see this layout:
 
-### How to use it:
-1. Locate the **State Inspector** panel on the frontend.
-2. You will see tabs or sections for variables like `plan`, `draft`, `critique`, and `topic`.
-3. If it paused after planning, check the `plan` variable. You'll see the exact outline the AI intends to follow!
-
-### What happens under the hood (API Context):
-The frontend retrieves the full `AgentState`.
-
-**Endpoint:** `GET /api/workflow/{thread_id}/state`
-**Expected Response:**
-```json
-{
-  "topic": "The Impact of AI on Modern Agriculture",
-  "plan": "1. Introduction\n2. AI in Crop Monitoring\n3. Automated Harvesting\n4. Conclusion",
-  "draft": "",
-  "critique": ""
-}
 ```
+┌─────────────────────────────────────────────────────────────────┐
+│  TOP BAR                                                        │
+│  📄 Topic   Last: [node]   Next: [node]   Rev X/Y   ⏸️ Paused  │
+├─────────────────────┬───────────────────────────────────────────┤
+│  LEFT PANEL         │  RIGHT PANEL — STATE VIEWER               │
+│                     │                                           │
+│  GRAPH TOPOLOGY     │  ┌─ Plan ─ Draft ─ Research ─ Critique ──┐│
+│  (visual nodes)     │  │                                       ││
+│  🟢 PLANNER         │  │  Content of the selected tab          ││
+│  🟢 RESEARCHER      │  │  (rendered as beautiful markdown)     ││
+│  🟡 GENERATE        │  │                                       ││
+│  ⬜ REFLECT         │  └───────────────────────────────────────┘│
+│  ⬜ RESEARCH CRIT.  │                                           │
+│                     │  [ ✏️ Edit ]      [ ▶️ Resume ]           │
+└─────────────────────┴───────────────────────────────────────────┘
+```
+
+### The 4 State Tabs — Know What to Check
+
+| Tab | What It Shows | ✅ When Populated |
+|---|---|---|
+| 📋 **Plan** | Essay outline with sections & writing notes | After Planner runs |
+| 📝 **Draft** | The full prose essay draft | After Generate runs |
+| 🔍 **Research** | Search queries used + web content snippets | After Research nodes run |
+| 💬 **Critique** | AI teacher's detailed feedback + grade | After Reflect runs |
+
+> 💡 **Always open the Research tab** after each research step to confirm the queries are real and relevant — not placeholder text!
 
 ---
 
-## ✍️ Feature 4: State Modification (Steering the AI)
-
-This is the magic! You don't like part of the plan? You can rewrite it right there. The AI will accept your changes as its own reality and proceed based on your edits.
-
-### How to use it:
-1. In the State Inspector, click **Edit** on the `plan` or `draft`.
-2. Add a new point to the plan (e.g., *"2.5 Predictive Weather Modeling"*).
-3. Click **Save** or **Update State**.
-
-### What happens under the hood (API Context):
-The frontend sends a PATCH request to overwrite that specific state variable.
-
-**Endpoint:** `PATCH /api/workflow/{thread_id}/state`
-**Sample Payload:**
-```json
-{
-  "state_updates": {
-    "plan": "1. Introduction\n2. AI in Crop Monitoring\n2.5 Predictive Weather Modeling\n3. Automated Harvesting\n4. Conclusion"
-  }
-}
-```
-**Expected Response:**
-```json
-{
-  "status": "success",
-  "updated_keys": ["plan"]
-}
-```
-
-*Enthusiast Tip:* This completely breaks the traditional AI black-box limit. You just steered the trajectory of the generation seamlessly!
+## 🗺️ Step-by-Step Walkthrough
 
 ---
 
-## ▶️ Feature 5: Resuming the Workflow
+### 🟢 Step 1 — Planner ✍️
 
-Once you are satisfied with the state (whether you edited it or just reviewed it), you tell the AI to continue to the next step.
+**What the AI does internally:**
+Reads your topic → generates a structured markdown essay outline with sections, instructions, and a thesis statement.
 
-### How to use it:
-1. Click the big **"Resume"** or **"Continue"** button on the UI.
-2. The UI will show the workflow transition from `interrupted` back to `running`.
-3. It will proceed to the next node (e.g., `draft_essay`) and pause again.
+**What you see in the UI:**
+- Top bar: `Last: Planner  →  Next: Research Plan`
+- **Plan tab** shows something like:
 
-### What happens under the hood (API Context):
-The frontend triggers the resume action.
+```markdown
+## I. Introduction
+- **Hook:** Begin with a striking statistic about AI adoption in farming
+- **Context:** Historical shift from traditional to data-driven agriculture
+- **Thesis:** AI is revolutionizing modern agriculture by enhancing crop yields...
+- **Instructions:** Keep to one concise paragraph with an academic tone.
 
-**Endpoint:** `POST /api/workflow/resume`
-**Sample Payload:**
-```json
-{
-  "thread_id": "123e4567-e89b-12d3-a456-426614174000"
-}
-```
-**Expected Response:**
-```json
-{
-  "status": "resumed"
-}
+## II. Body: Transformative Benefits and Emerging Challenges
+- **Core Focus:** Precision farming, computer vision, predictive analytics
+- **Examples:** Drones, AI irrigation systems, ML yield prediction
+- **Counterpoints:** High costs, digital divide, data privacy
+
+## III. Conclusion
+- **Restate Thesis:** Rephrase the central argument
+- **Final Thought:** Forward-looking statement on equitable AI access
 ```
 
 ---
 
-## ⏱️ Feature 6: Time Travel & History
+**🎯 Your HITL Actions at This Step:**
 
-Mistakes happen! Maybe the AI generated a bad draft, or maybe you want to explore two different ideas from the same plan. You can view the history and jump back in time.
+| Action | Steps | When to Use |
+|---|---|---|
+| ✅ **Just Resume** | Click ▶️ Resume | Happy with the plan, let AI proceed |
+| ✏️ **Add a section** | Edit → add bullet → Save → Resume | Want more coverage of a subtopic |
+| 🔄 **Change the focus** | Edit → rewrite section → Save → Resume | AI misunderstood the angle you wanted |
+| 🔁 **Override entirely** | Edit → replace plan → Save → Resume | Complete restructure needed |
 
-### How to use it:
-1. Open the **History** or **Timeline** view in the sidebar or main panel.
-2. You will see a list of all checkpoints (every time the graph executed a node).
-3. Click on a past checkpoint to view what the state looked like exactly at that moment.
-4. Click **"Restore to this checkpoint"** or **"Fork from here"**.
+**📝 Sample Edit — Adding a Missing Subtopic:**
 
-### What happens under the hood (API Context):
+Click **Edit** on the Plan tab and insert:
 
-**Viewing History Endpoint:** `GET /api/history/{thread_id}`
-**Expected Response:**
-```json
+```markdown
+## II. Body: Transformative Benefits and Emerging Challenges
+...existing content...
+
+**2.5 Predictive Weather Modeling** ← ADD THIS
+  - Include IBM Watson Decision Platform for Agriculture
+  - Reference drought forecasting outcomes in India's Telangana region
+  - Note: integrate Microsoft's AI Sowing App (ICRISAT collaboration)
+```
+
+Save → Resume. The research and draft will now include weather modeling! ✅
+
+> 🏆 **This is the highest-impact edit you can make.** Everything downstream — queries, draft structure, critique focus — flows from the plan. A better plan = a dramatically better essay.
+
+---
+
+### 🔵 Step 2 — Research Plan 🔍
+
+**What the AI does internally:**
+Reads your topic → generates **3 targeted search queries** → uses Tavily to fetch **real web articles** → stores snippets in `content[]`.
+
+**What you see in the UI:**
+- Top bar: `Last: Research Plan  →  Next: Generate`
+- **Research tab** shows query badges + content cards
+
+**✅ What GOOD research looks like:**
+```
+🔴 artificial intelligence applications in modern agriculture precision farming
+🔴 impact of AI on agricultural productivity sustainability and labor
+🔴 challenges and future trends of AI adoption in farming
+
+Research Snippets (6):
+├─ "FAO statistics show 30-40% post-harvest food losses..."
+├─ "AI-powered irrigation reduces water consumption by 15-30%..."
+├─ "Smallholder farmers face $1000-3000 initial AI investment barrier..."
+└─ (+ 3 more relevant snippets)
+```
+
+**❌ What BAD research looks like (old bug — now fixed):**
+```
+query1, query2, query3  ← Model returned the template literally!
+Snippets: SQL tutorials, Config Manager docs  ← Completely irrelevant
+```
+
+> ⚠️ **ALWAYS verify the Research tab here before resuming.**
+> If queries look like "query1" or snippets are about SQL/databases, **delete this thread and start fresh** — the draft will be garbage otherwise.
+
+---
+
+**🎯 Your HITL Action at This Step:**
+
+Usually just **Resume** — if the queries look relevant, you're good to go.
+The research step is less editable but critical to verify.
+
+---
+
+### 🟡 Step 3 — Generate (Draft) 📝
+
+**What the AI does internally:**
+Combines the **plan + all research snippets** to write the first complete essay in real prose paragraphs.
+
+**What you see in the UI:**
+- Top bar: `Last: Generate  →  Next: Reflect   Rev 1/2`
+- **Draft tab** shows full essay paragraphs (not an outline — actual writing)
+
+**✅ What a GOOD draft looks like:**
+```
+[Paragraph 1 — Introduction]
+Feeding a global population that is rapidly expanding while simultaneously
+combating the destabilizing effects of climate change and acute labor
+shortages presents one of the most formidable challenges of the
+twenty-first century. Traditional agricultural methods, long reliant
+on mechanization and intuition, are increasingly insufficient...
+
+[Paragraph 2 — Body]
+The core of this agricultural revolution lies in the application of
+AI-driven technologies, such as computer vision and predictive analytics,
+which enable unprecedented levels of precision...
+
+[Paragraph 3 — Conclusion]
+Despite these profound benefits, the widespread adoption of AI in
+agriculture is not without significant hurdles...
+```
+
+---
+
+**🎯 Your HITL Actions at This Step:**
+
+| Action | Steps | Effect |
+|---|---|---|
+| ✅ **Resume** | Click ▶️ Resume | Let AI critique this draft and improve it |
+| ✏️ **Edit a sentence** | Edit → fix the sentence → Save → Resume | Your version gets critiqued + revised |
+| 📋 **Add your own writing** | Edit → insert your paragraph → Save → Resume | AI will improve around YOUR text |
+
+**📝 Sample Edit — Injecting a Stronger Opening:**
+
+Replace the first sentence from:
+> "Feeding a global population..."
+
+With your edit:
+> "By 2050, the world must feed 9.7 billion people — yet climate change, acute labor shortages, and depleting natural resources are converging to make traditional farming increasingly untenable. Artificial Intelligence (AI) has emerged not merely as a tool, but as the defining technological shift in modern agriculture..."
+
+The AI will carry your stronger opening into all future revisions. 🎯
+
+---
+
+### 🟠 Step 4 — Reflect (Critique) 🎓
+
+**What the AI does internally:**
+Acts as an academic teacher. Reads the draft and produces a detailed critique with overall grade, structural feedback, and a specific action plan for revision.
+
+**What you see in the UI:**
+- Top bar: `Last: Reflect  →  Next: Research Critique   Rev 1/2`
+- **Critique tab** shows the full teacher review
+
+**✅ What a GOOD critique looks like:**
+```markdown
+### Overall Impression
+Coherent, academically-toned essay. Thesis is clear. Flow from problem
+(climate/labor) to solution (AI) to challenges (ethics/equity) is logical.
+
+Grade: B+
+
+### Recommendations:
+1. **Length:** Expand to 500-750 words — currently too brief for academic depth
+2. **Depth:** Add 2-3 specific case studies with measurable statistics
+3. **Ethics:** Elaborate on data ownership and algorithmic bias issues
+4. **Sentence Variety:** Break up the 40+ word sentences in paragraph 1
+
+### Line-by-Line:
+- P2: Add specific water savings % for AI irrigation systems
+- P3: Cite which regions face the digital divide most severely
+```
+
+---
+
+**🎯 Your HITL Actions at This Step — 🥈 2nd Most Impactful Edit!**
+
+| Action | Effect |
+|---|---|
+| ✅ **Resume** | AI decides what to research based on its own critique |
+| ✏️ **Add to critique** | YOUR requirements get researched and addressed in the next revision |
+| 🔄 **Replace critique** | Complete override — you become the teacher |
+
+**📝 Sample Edit — Injecting Specific Requirements:**
+
+Open the Critique tab → click **Edit** → scroll to the bottom and add:
+
+```markdown
+---
+## 🔴 Additional Requirements from Reviewer (MANDATORY):
+
+The next revision MUST incorporate ALL of the following:
+
+1. **India Case Study:** Include the Microsoft AI Sowing App developed with
+   ICRISAT — mention the 21% increase in chili yields in Khammam, Telangana
+   across 7,000 farmers
+
+2. **Statistics:** Use this exact figure — "AI boosts crop productivity
+   by 20-150% (Du et al., 2018)"
+
+3. **Market Data:** Reference the global AI in Agriculture market reaching
+   USD 2.4 billion in 2025 (CAGR of 24.5%)
+
+4. **Ethics Paragraph:** Dedicate a full paragraph to data ownership — who
+   controls the data collected from farm sensors: the farmer or the tech
+   company? (Reference the Ryan, 2022 paper on AI ethics in agriculture)
+```
+
+Save → Resume. The `research_critique` node will now **specifically search** for all of these! ✅
+
+---
+
+### 🟣 Step 5 — Research Critique 🔎
+
+**What the AI does internally:**
+Reads your (edited) critique → generates **new targeted queries** → fetches **additional content** not in the original research → appends to `content[]`.
+
+**What you see in the UI:**
+- Top bar: `Last: Research Critique  →  Next: Generate`
+- **Research tab** now shows MORE queries and snippets than before
+
+**✅ Verify at this step:**
+New queries should reflect what the critique asked for:
+```
+🔴 statistics on AI precision farming water savings crop yield case studies India
+🔴 ethical implications AI agriculture data ownership algorithmic bias smallholder
+```
+
+> 💡 **Note:** `content[]` is **cumulative**. By the final draft, the AI has access to ALL research from all cycles combined — this is why later drafts are significantly richer.
+
+---
+
+### 🏁 Step 6 — Final Draft & Completion
+
+**What the AI does internally:**
+Writes the final revision using **all accumulated research** + the full critique feedback.
+
+Then `should_continue` runs:
+```python
+if revision_number (3) > max_revisions (2):  # TRUE!
+    return END  # ✅ Workflow complete
+```
+
+**What you see in the UI:**
+```
+╔════════════════════════════════════════╗
+║   ✅ Workflow Complete!                ║
+║   3 revision(s) · 15 steps            ║
+║   Last: Generate   Rev 3/2  Completed ║
+╚════════════════════════════════════════╝
+```
+
+The final essay is:
+- ✅ Displayed in the **Draft tab** (rendered markdown)
+- ✅ Saved as `{topic_slug}.txt` in the project root directory
+
+> 🏆 **You just co-authored an AI essay with full transparency and human steering!**
+
+---
+
+## 🦸 HITL Superpowers — What You Can Do at Each Pause
+
+Complete summary of every edit and its effect:
+
+```
+PAUSE AFTER        WHAT TO EDIT          DOWNSTREAM EFFECT
+──────────────────────────────────────────────────────────────────────
+Planner      →  plan (outline)      →  Research queries, draft structure
+Research     →  content (snippets)  →  What the first draft is based on
+Generate     →  draft (prose text)  →  What critique evaluates
+Reflect      →  critique (feedback) →  What new research targets
+Res.Critique →  (verify queries)    →  What final draft incorporates
+```
+
+**Edit Impact Rankings:**
+
+| 🏅 Rank | Edit Point | Impact Level |
+|---|---|---|
+| 🥇 1st | Edit the **Plan** after Planner | Shapes everything downstream |
+| 🥈 2nd | Edit the **Critique** after Reflect | Directly steers next revision focus |
+| 🥉 3rd | Edit the **Draft** after Generate | Injects your writing into the loop |
+
+---
+
+## ⏱️ Time Travel & History
+
+Made a mistake? Want to try a different direction? **Rewind to any past checkpoint.**
+
+### How to Use It
+
+1. Open the **History** panel (sidebar clock icon or "History" tab)
+2. See all checkpoints — one per completed node:
+
+```
+Step 1  │  planner          │  13:04:22  │  [👁️ View] [⏮️ Restore]
+Step 2  │  research_plan    │  13:05:11  │  [👁️ View] [⏮️ Restore]
+Step 3  │  generate         │  13:06:45  │  [👁️ View] [⏮️ Restore]
+Step 4  │  reflect          │  13:07:30  │  [👁️ View] [⏮️ Restore]
+Step 5  │  research_critique│  13:08:55  │  [👁️ View] [⏮️ Restore]
+Step 6  │  generate         │  13:10:20  │  [👁️ View] [⏮️ Restore]
+```
+
+3. **View** → inspect full AgentState at that exact moment in time
+4. **Restore / Fork** → jump back to that checkpoint and create a new branch
+
+> ⚠️ **Time travel creates a new thread (fork).** Your original is safe.
+> You now have parallel timelines — perfect for A/B testing.
+
+### Example Use Case
+
+```
+Original run:
+  Plan → Research → Draft (too generic) → ...
+
+Time-travel back to after Planner → Edit plan to add India focus → Resume:
+  Plan [FORK] → Research (India-specific) → Draft (India-focused) → ...
+```
+
+---
+
+## 💡 Tips, Tricks & Sample Edits
+
+### 🎯 Tip 1 — Be Hyper-Specific in Plan Edits
+
+❌ Weak:
+> "Add more about ethics"
+
+✅ Strong:
+> "**II.5 Ethical Dimensions (dedicated section):**
+> - Data Ownership: who controls farm sensor data — the farmer or the tech company?
+> - Algorithmic Bias: are models trained on large US farms less effective for Indian smallholders?
+> - Reference: Ryan (2022) — *Social and Ethical Impacts of AI in Agriculture*"
+
+---
+
+### 🎯 Tip 2 — Write Critiques Like Instructions
+
+The critique text flows **directly into the research prompt**. Write it imperatively:
+
+```markdown
+MANDATORY FOR NEXT REVISION:
+1. Open P1 with: "By 2050, the world must feed 9.7 billion people..."
+2. Include Khammam case study: 7,000 farmers, 21% chili yield increase
+3. Cite market data: USD 2.4 billion in 2025 at 24.5% CAGR
+4. End conclusion with a call-to-action for governments
+5. Add at least 3 specific statistics with source citations
+```
+
+---
+
+### 🎯 Tip 3 — Max Revisions Strategy
+
+| Max Revisions | Result | Best For |
+|---|---|---|
+| `1` | Initial draft + 1 critique cycle = v2 final | Quick tests |
+| `2` | Two full critique-research-revise cycles ✅ | Most use cases |
+| `3+` | Deep iterative refinement | Complex academic writing |
+
+---
+
+### 🎯 Tip 4 — What Each Status Indicator Means
+
+| UI Indicator | Meaning |
+|---|---|
+| `🟡 Paused — Awaiting Human Review` | AI finished a step, waiting for you |
+| `🟢 Running` | AI is currently executing a node |
+| `✅ Completed` | Workflow finished — essay is done |
+| `Last: X → Next: Y` | X just ran, Y will run when you Resume |
+| `Rev 2/2` | Currently on 2nd revision out of 2 max |
+| `Steps 15` | 15 total node executions have happened |
+
+---
+
+## 🔧 What's Happening Under the Hood
+
+### Architecture Overview
+
+```
+┌──────────────────────────────────────────────────────┐
+│  FRONTEND  (React + Vite, port 5173)                 │
+│  Graph topology, state tabs, Edit/Resume buttons     │
+└───────────────────┬──────────────────────────────────┘
+                    │  HTTP fetch calls
+┌───────────────────▼──────────────────────────────────┐
+│  BACKEND  (FastAPI, port 8000)                       │
+│  /api/workflow  /api/history  /api/graph             │
+└───────────────────┬──────────────────────────────────┘
+                    │  Python + LangGraph SDK
+┌───────────────────▼──────────────────────────────────┐
+│  LANGGRAPH GRAPH  (the AI pipeline)                  │
+│  5 nodes, SQLite checkpointer, interrupt_after=all   │
+└──────────────────────────────────────────────────────┘
+```
+
+### The 5-Node Pipeline
+
+```
+[START]
+   |
+   v (pauses here)
+[planner]           LLM: topic → essay outline (plan)
+   |
+   v (pauses here)
+[research_plan]     LLM: topic → 3 queries → Tavily fetch → content[]
+   |
+   v (pauses here)
+[generate]          LLM: plan + content[] → essay draft
+   |
+   v  should_continue?
+   |-- revision_number > max_revisions --> [END] 🏁
+   |
+   v (pauses here)
+[reflect]           LLM: draft → critique (teacher feedback)
+   |
+   v (pauses here)
+[research_critique]  LLM: critique → 2 queries → Tavily → content[]
+   |
+   └──────────────────────────────► back to [generate] (loop)
+```
+
+### The AgentState Object
+
+Every node reads and writes to one shared memory object:
+
+```python
 {
-  "checkpoints": [
-    {
-      "checkpoint_id": "chk_abc",
-      "timestamp": "2026-08-18T13:00:00Z",
-      "node": "plan_essay"
-    },
-    {
-      "checkpoint_id": "chk_xyz",
-      "timestamp": "2026-08-18T13:01:00Z",
-      "node": "draft_essay"
-    }
-  ]
+    "task":            str,   # Your topic (never changes)
+    "plan":            str,   # Outline — YOU CAN EDIT THIS ✏️
+    "draft":           str,   # Essay text — YOU CAN EDIT THIS ✏️
+    "critique":        str,   # AI feedback — YOU CAN EDIT THIS ✏️
+    "content":         list,  # All research snippets (cumulative)
+    "queries":         list,  # Search queries (for UI display)
+    "revision_number": int,   # Increments +1 each generate cycle
+    "max_revisions":   int,   # Your configured limit
+    "lnode":           str,   # Last node run (for UI display)
+    "count":           int,   # Total steps executed
 }
 ```
 
-**Time Travel Endpoint:** `POST /api/history/{thread_id}/time-travel`
-**Sample Payload:**
-```json
-{
-  "checkpoint_id": "chk_abc"
-}
-```
-**Expected Response:**
-```json
-{
-  "status": "success",
-  "new_thread_id": "999e4567-e89b-12d3-a456-426614174001",
-  "message": "Forked successfully. New thread created."
-}
-```
+### Key API Calls the UI Makes
 
-*Enthusiast Tip:* Time travel effectively creates a new parallel timeline. Your original thread remains untouched, but now you have a new thread starting from the exact past state you selected. Perfect for A/B testing ideas!
+| UI Action | API Call | Effect |
+|---|---|---|
+| Click Start | `POST /api/workflow/start` | Creates thread, runs to first pause |
+| Click Resume | `POST /api/workflow/resume` | Continues to next node |
+| Click Save (in Edit) | `PATCH /api/workflow/{id}/state` | Overwrites field before next run |
+| Load state viewer | `GET /api/workflow/{id}/state` | Fetches full AgentState |
+| Load history | `GET /api/history/{id}` | Fetches all checkpoint IDs |
+| Time travel | `POST /api/history/{id}/time-travel` | Forks from a past checkpoint |
+
+---
+
+## 📋 Quick Reference Card
+
+```
+╔══════════════════════════════════════════════════════════════════╗
+║            🧠 HITL WORKFLOW — QUICK REFERENCE CARD             ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  1. START       Type topic → Set max_revisions → Submit          ║
+║                                                                  ║
+║  2. PLANNER ⏸️  Check Plan tab → Clean outline? ✅              ║
+║                 Edit plan if needed ← HIGHEST IMPACT            ║
+║                 Click Resume ▶️                                   ║
+║                                                                  ║
+║  3. RESEARCH ⏸️ Check Research tab → Real queries? ✅           ║
+║                 If queries = "query1" → DELETE & restart ❌      ║
+║                 Click Resume ▶️                                   ║
+║                                                                  ║
+║  4. GENERATE ⏸️ Check Draft tab → Real prose paragraphs? ✅     ║
+║                 Edit draft if desired                            ║
+║                 Click Resume ▶️                                   ║
+║                                                                  ║
+║  5. REFLECT ⏸️  Check Critique tab → Has grade + feedback? ✅   ║
+║                 Add YOUR requirements to critique ← HIGH IMPACT ║
+║                 Click Resume ▶️                                   ║
+║                                                                  ║
+║  6. RESEARCH ⏸️ Verify new queries match your critique edits     ║
+║     CRITIQUE    Click Resume ▶️                                   ║
+║                                                                  ║
+║  7. GENERATE    Final draft written                              ║
+║                 rev_number > max_revisions → END ✅              ║
+║                                                                  ║
+║  8. 🏁 DONE     Draft tab = final essay                          ║
+║                 Saved as {topic_slug}.txt in project root        ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+```
 
 ---
 
 ## 🎓 Conclusion
 
-By using this frontend, you aren't just prompting an AI; you are **orchestrating** an AI workflow. 
-1. **Start** a thread.
-2. **Review** when it pauses.
-3. **Modify** state variables to steer.
-4. **Resume**.
-5. **Time-travel** if you want to branch out.
+You've now seen the full picture of a Human-In-The-Loop AI workflow — not just what it does, but *why* each step matters and exactly how to steer it.
 
-Enjoy exploring the possibilities!
+| Core Concept | What It Means In Practice |
+|---|---|
+| 🔍 **Transparency** | Every AI decision is visible before it acts |
+| ✏️ **Interactability** | You can change any decision before the next step |
+| 💾 **Persistence** | SQLite stores every checkpoint — nothing is ever lost |
+| ⏮️ **Time Travel** | Fork from any past point to explore alternatives |
+| 🔁 **Iteration** | Multiple cycles make essays progressively better |
+
+This architecture — LangGraph + HITL + checkpointing — is the foundation of modern **agentic AI systems**. The same principles power GitHub Copilot Workspace, Cursor, and enterprise AI pipelines.
+
+> 🚀 **Master this mental model and you understand where AI is heading.**
+
+---
+
+*📅 Guide written based on a live dry-run session. Last verified: August 2026.*
