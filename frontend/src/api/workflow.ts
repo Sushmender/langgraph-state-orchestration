@@ -37,4 +37,8 @@ export const workflowApi = {
   /** GET /api/workflow/interrupt-options */
   getInterruptOptions: () =>
     apiClient.get<InterruptOptionsResponse>('/api/workflow/interrupt-options').then((r) => r.data),
+
+  /** POST /api/workflow/{thread_id}/accept — accept draft and finish immediately */
+  accept: (thread_id: string) =>
+    apiClient.post<WorkflowStatus>(`/api/workflow/${thread_id}/accept`, {}).then((r) => r.data),
 };

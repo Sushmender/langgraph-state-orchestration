@@ -32,7 +32,7 @@ type CenterView = 'graph' | 'state';
 function ViewToggle({ value, onChange }: { value: CenterView; onChange: (v: CenterView) => void }) {
   return (
     <div className="flex items-center gap-1 p-0.5 rounded-xl bg-[#1c1414] border border-[rgba(122,17,40,0.2)] shadow-inner">
-      {(['graph', 'state'] as CenterView[]).map((v) => {
+      {(['state', 'graph'] as CenterView[]).map((v) => {
         const isActive = value === v;
         const Icon = v === 'graph' ? LayoutTemplate : Database;
         const label = v === 'graph' ? 'Graph' : 'Agent State';
@@ -176,7 +176,7 @@ function IdleGuide({ onNewWorkflow }: { onNewWorkflow: () => void }) {
 /* ── Main workspace page ──────────────────────────────────────────────────── */
 export function WorkspacePage() {
   const [showForm, setShowForm] = useState(false);
-  const [centerView, setCenterView] = useState<CenterView>('graph');
+  const [centerView, setCenterView] = useState<CenterView>('state');
   const { activeThreadId, appStatus, threads, setActivePanel } = useWorkflowStore();
 
   // Smart default: auto-open threads panel if existing threads present
@@ -188,9 +188,9 @@ export function WorkspacePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Reset view to graph when thread or status changes
+  // Reset view to state when thread or status changes
   useEffect(() => {
-    setCenterView('graph');
+    setCenterView('state');
   }, [activeThreadId, appStatus]);
 
   const isIdle      = appStatus === 'idle' && !activeThreadId;

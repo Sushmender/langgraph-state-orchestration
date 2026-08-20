@@ -194,13 +194,18 @@ def generation_node(state: AgentState) -> dict:
     }
 
 
-# ── Node 4: Reflect ───────────────────────────────────────────────────────────
+# ── Node 4: Reflect ────────────────────────────────────────────────────────────────────────────────
 def reflection_node(state: AgentState) -> dict:
     """
     Grades the current draft and produces critique / improvement suggestions.
     HITL pause point: user can read the AI critique and optionally override it
     with their own feedback before the researcher acts on it.
+    If force_end is set, this is a no-op (skips LLM call entirely).
     """
+    # ── Fast-path: user accepted the current draft, skip all further LLM work ──
+    if state.get("force_end"):
+        return {"critique": "", "lnode": NODE_REFLECT, "count": 1}
+
     llm = _get_llm()
     messages = [
         SystemMessage(content=REFLECTION_PROMPT),
@@ -214,14 +219,19 @@ def reflection_node(state: AgentState) -> dict:
     }
 
 
-# ── Node 5: Research Critique ─────────────────────────────────────────────────
+# ── Node 5: Research Critique ─────────────────────────────────────────────────────────────────────────────
 def research_critique_node(state: AgentState) -> dict:
     """
     Takes the critique, generates targeted search queries, and fetches more
     research to support the revision.
     HITL pause point: user can see what new research was pulled before the
     next draft is written.
+    If force_end is set, this is a no-op (skips LLM + Tavily calls entirely).
     """
+    # ── Fast-path: user accepted the current draft, skip all further LLM work ──
+    if state.get("force_end"):
+        return {"lnode": NODE_RESEARCH_CRITIQUE, "count": 1}
+
     llm = _get_llm()
     tavily = _get_tavily()
 
@@ -255,13 +265,14 @@ def research_critique_node(state: AgentState) -> dict:
     }
 
 
-# ── Conditional Edge ──────────────────────────────────────────────────────────
+# ── Conditional Edge ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 def should_continue(state: AgentState) -> str:
     """
     Routes from 'generate':
+    - If force_end is True (user accepted the draft mid-run) → END immediately
     - If we've hit the revision cap → END
     - Otherwise → 'reflect' for another critique cycle
     """
-    if state["revision_number"] > state["max_revisions"]:
+    if state.get("force_end") or state["revision_number"] > state["max_revisions"]:
         return END
     return NODE_REFLECT

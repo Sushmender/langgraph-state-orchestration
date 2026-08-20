@@ -86,7 +86,7 @@ export function Sidebar({ onNewWorkflow }: Props) {
               <p className="text-xs text-[#3a2626] mt-1">Start a workflow above</p>
             </div>
           ) : (
-            threads.map((thread, i) => {
+            [...threads].reverse().map((thread, i) => {
               const isActive = activeThreadId === thread.thread_id;
               return (
                 <SidebarItem 

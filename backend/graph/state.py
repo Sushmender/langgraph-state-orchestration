@@ -7,7 +7,7 @@ that flows through the LangGraph essay-writing pipeline.
 from __future__ import annotations
 
 import operator
-from typing import Annotated, List, TypedDict
+from typing import Annotated, List, Optional, TypedDict
 
 
 class AgentState(TypedDict):
@@ -25,6 +25,9 @@ class AgentState(TypedDict):
     queries         : The search queries that were sent to Tavily.
     revision_number : How many drafts have been generated so far.
     max_revisions   : The cap on how many revisions to allow before stopping.
+    force_end       : When True, all remaining nodes are no-ops and the graph
+                      routes to END immediately — lets the user accept the
+                      current draft without any further LLM cycles.
     count           : Monotonically increasing step counter (uses operator.add
                       so LangGraph reduces parallel updates by summing them).
     """
@@ -37,4 +40,5 @@ class AgentState(TypedDict):
     queries: List[str]
     revision_number: int
     max_revisions: int
+    force_end: Optional[bool]
     count: Annotated[int, operator.add]

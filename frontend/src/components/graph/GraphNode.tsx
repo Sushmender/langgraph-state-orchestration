@@ -21,15 +21,18 @@ interface Theme { bg: string; border: string; text: string; ring: string }
 
 function getBaseTheme(label: string): Theme {
   if (label === 'Done')
-    return { bg: '#1e3a8a', border: '#3b82f6', text: '#bfdbfe', ring: '#60a5fa' };
+    return { bg: '#1e3a8a', border: '#3b82f6', text: '#bfdbfe', ring: '#ffd700' };
   if (label === 'Reflect' || label === 'Research Critique')
     return { bg: '#3b1c10', border: '#9a4523', text: '#f0a880', ring: '#c2714f' };
   // Planner, Researcher, Generate
   return { bg: '#0f2d1e', border: '#2d7a50', text: '#6ee7a0', ring: '#3d8c5e' };
 }
 
-function resolveTheme(base: Theme, isActive: boolean, isCompleted: boolean, isNext: boolean): Theme {
-  if (isActive) return { ...base, border: 'rgba(255,255,255,0.55)', text: '#ffffff' };
+function resolveTheme(base: Theme, isActive: boolean, isCompleted: boolean, isNext: boolean, label: string): Theme {
+  if (isActive) {
+    if (label === 'Done') return { ...base, border: '#ffd700', text: '#ffd700' };
+    return { ...base, border: 'rgba(255,255,255,0.55)', text: '#ffffff' };
+  }
   if (isCompleted) return { ...base, border: '#10b981', text: '#6ee7b7' };
   if (isNext && !isActive) return { ...base, border: 'rgba(245,158,11,0.55)', text: '#fbbf24' };
   return base;
@@ -62,7 +65,7 @@ function Hdl({
 // Single rectangle NodeBox — used for every node
 function NodeBox({ d }: { d: NodeData }) {
   const base = getBaseTheme(d.label);
-  const theme = resolveTheme(base, d.isActive, d.isCompleted, d.isNext);
+  const theme = resolveTheme(base, d.isActive, d.isCompleted, d.isNext, d.label);
 
   return (
     <motion.div

@@ -81,7 +81,7 @@ export function GraphVisualizer() {
         label: n.label,
         description: n.description,
         hitl_note: n.hitl_note,
-        isActive: workflowStatus?.last_node === n.id,
+        isActive: appStatus === 'completed' ? n.id === 'done' : workflowStatus?.last_node === n.id,
         isNext: workflowStatus?.next_node === n.id,
         isCompleted: (() => {
           const lastIdx = order.indexOf(workflowStatus?.last_node ?? '');

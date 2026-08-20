@@ -175,6 +175,29 @@ export function useWorkflow() {
     }
   }, [store, stopPolling, startPolling]);
 
+  // ── Accept current draft — skip remaining revisions ───────────────────────────────────
+  const acceptWorkflow = useCallback(async () => {
+    const thread_id = store.activeThreadId;
+    if (!thread_id) return;
+    stopPolling();
+    store.setAppStatus('polling');
+    store.setError(null);
+    try {
+      const status = await workflowApi.accept(thread_id);
+      store.setWorkflowStatus(status);
+      store.setAppStatus('completed');
+      const [values, hist] = await Promise.all([
+        workflowApi.getState(thread_id),
+        historyApi.getHistory(thread_id),
+      ]);
+      store.setStateValues(values);
+      store.setHistory(hist.snapshots);
+    } catch (e: unknown) {
+      store.setError((e as Error).message);
+      store.setAppStatus('error');
+    }
+  }, [store, stopPolling]);
+
   // ── Update state field ────────────────────────────────────────────────────
   const updateStateField = useCallback(
     async (req: UpdateStateRequest) => {
@@ -248,6 +271,7 @@ export function useWorkflow() {
     switchThread,
     startWorkflow,
     resumeWorkflow,
+    acceptWorkflow,
     updateStateField,
     timeTravel,
     deleteThread,

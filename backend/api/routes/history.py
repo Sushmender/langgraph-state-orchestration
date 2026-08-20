@@ -229,7 +229,7 @@ def list_threads(request: Request):
         # SqliteSaver stores checkpoints in a table — query it directly
         conn = checkpointer.conn
         cursor = conn.execute(
-            "SELECT DISTINCT thread_id FROM checkpoints ORDER BY thread_id"
+            "SELECT thread_id FROM checkpoints GROUP BY thread_id ORDER BY MIN(checkpoint_id) ASC"
         )
         thread_ids = [row[0] for row in cursor.fetchall()]
         

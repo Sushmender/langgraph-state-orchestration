@@ -4,7 +4,7 @@
  * Includes an embedded compact pipeline mini-strip (replaces separate NodePipeline).
  */
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, CheckCircle2, AlertCircle, Loader2, ArrowRight, Check } from 'lucide-react';
+import { Play, CheckCircle2, AlertCircle, Loader2, ArrowRight, Check, CircleCheck } from 'lucide-react';
 import { useWorkflowStore } from '../../stores/workflowStore';
 import { useWorkflow } from '../../hooks/useWorkflow';
 import { formatNode } from '../../lib/utils';
@@ -89,12 +89,15 @@ function MiniPipeline() {
 
 export function StatusBanner() {
   const { workflowStatus, appStatus, error } = useWorkflowStore();
-  const { resumeWorkflow } = useWorkflow();
+  const { resumeWorkflow, acceptWorkflow } = useWorkflow();
 
   const isPolling   = appStatus === 'polling' || appStatus === 'starting';
   const isPaused    = appStatus === 'paused';
   const isCompleted = appStatus === 'completed';
   const isError     = appStatus === 'error';
+
+  // Show Accept button only when a draft exists (after generate has run)
+  const hasDraft = !!workflowStatus && workflowStatus.last_node === 'generate';
 
   return (
     <AnimatePresence mode="wait">
@@ -172,18 +175,39 @@ export function StatusBanner() {
               </div>
               <MiniPipeline />
             </div>
-            <button
-              onClick={resumeWorkflow}
-              className={cn(
-                'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold flex-shrink-0',
-                'bg-[#7a1128] hover:bg-[#9c1a37]',
-                'text-[#e8e0da] shadow-lg shadow-[#7a1128]/25 hover:shadow-[#7a1128]/40',
-                'transition-all duration-200 hover:scale-105 active:scale-95'
+            {/* Action buttons */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Accept & Finish — only shown when a real draft exists */}
+              {hasDraft && (
+                <button
+                  onClick={acceptWorkflow}
+                  title="Accept this draft and finish immediately — skips remaining revisions"
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold flex-shrink-0',
+                    'bg-emerald-700/30 hover:bg-emerald-600/40 border border-emerald-500/40 hover:border-emerald-400/60',
+                    'text-emerald-300 hover:text-emerald-200',
+                    'transition-all duration-200 hover:scale-105 active:scale-95'
+                  )}
+                >
+                  <CircleCheck className="w-3.5 h-3.5" />
+                  Accept & Finish
+                </button>
               )}
-            >
-              <Play className="w-3.5 h-3.5" />
-              Resume
-            </button>
+              {/* Resume */}
+              <button
+                onClick={resumeWorkflow}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold flex-shrink-0',
+                  'bg-[#7a1128] hover:bg-[#9c1a37]',
+                  'text-[#e8e0da] shadow-lg shadow-[#7a1128]/25 hover:shadow-[#7a1128]/40',
+                  'transition-all duration-200 hover:scale-105 active:scale-95'
+                )}
+              >
+                <Play className="w-3.5 h-3.5" />
+                Resume
+              </button>
+            </div>
+
           </div>
         </motion.div>
       )}

@@ -272,3 +272,52 @@ def get_interrupt_options(request: Request):
         "default_interrupt_after": DEFAULT_INTERRUPT_AFTER,
         "description": "Pass any subset of all_nodes in interrupt_after when starting a workflow.",
     }
+
+
+@router.post(
+    "/{thread_id}/accept",
+    response_model=WorkflowStatus,
+    summary="Accept current draft and finish (skip remaining revisions)",
+    description=(
+        "Sets `force_end=True` in the graph state, then automatically resumes "
+        "until the graph reaches END — all remaining LLM nodes become instant no-ops. "
+        "Use this when you're satisfied with the current draft and don't want further "
+        "critique/revision cycles to run."
+    ),
+)
+def accept_workflow(thread_id: str, request: Request):
+    graph = _get_graph(request)
+    thread_config = _make_thread_config(thread_id)
+
+    # Verify thread exists and is paused
+    try:
+        current = graph.get_state(thread_config)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Thread not found: {e}")
+
+    if not current or not current.metadata:
+        raise HTTPException(status_code=404, detail="Thread has no state yet.")
+
+    if not current.next:
+        raise HTTPException(status_code=400, detail="Workflow has already completed.")
+
+    # ── 1. Stamp force_end=True into the state ─────────────────────────────
+    updated_values = dict(current.values)
+    updated_values["force_end"] = True
+    try:
+        graph.update_state(thread_config, updated_values, as_node=current.values.get("lnode", "generate"))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"State update failed: {e}")
+
+    # ── 2. Drive graph to END in a tight loop (no-ops are instant) ─────────
+    max_steps = 10  # safety cap — force_end makes each step instant
+    for _ in range(max_steps):
+        try:
+            state = graph.get_state(thread_config)
+            if not state.next:
+                break  # reached END
+            graph.invoke(None, thread_config)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Graph execution error: {e}")
+
+    return _build_status(thread_id, graph, thread_config)
