@@ -10,10 +10,11 @@ Keeping schemas in one file means:
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
-from graph.prompts import ALL_NODES, DEFAULT_INTERRUPT_AFTER
+from typing import Any
 
+from pydantic import BaseModel, Field
+
+from graph.prompts import ALL_NODES, DEFAULT_INTERRUPT_AFTER
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # REQUEST MODELS
@@ -32,7 +33,7 @@ class StartWorkflowRequest(BaseModel):
         le=5,
         description="Maximum number of draft revisions before the workflow ends.",
     )
-    interrupt_after: List[str] = Field(
+    interrupt_after: list[str] = Field(
         default=DEFAULT_INTERRUPT_AFTER,
         description=(
             "List of node names to pause at for human review. "
@@ -80,7 +81,7 @@ class TimeTravelRequest(BaseModel):
             "Obtain this from GET /api/history/{thread_id}."
         ),
     )
-    state_overrides: Optional[Dict[str, Any]] = Field(
+    state_overrides: dict[str, Any] | None = Field(
         default=None,
         description=(
             "Optional key/value pairs to override in the restored state. "
@@ -96,29 +97,29 @@ class TimeTravelRequest(BaseModel):
 class WorkflowStatus(BaseModel):
     """Lightweight status returned after start / resume / status check."""
     thread_id: str
-    last_node: Optional[str] = Field(None, description="The node that ran most recently.")
-    next_node: Optional[str] = Field(None, description="The node that will run next (None = finished).")
+    last_node: str | None = Field(None, description="The node that ran most recently.")
+    next_node: str | None = Field(None, description="The node that will run next (None = finished).")
     revision_number: int = Field(0, description="How many drafts have been generated.")
     step_count: int = Field(0, description="Total steps executed so far.")
     status: str = Field(
         ...,
         description="One of: 'running', 'interrupted', 'completed', 'error'.",
     )
-    message: Optional[str] = Field(None, description="Human-readable status message for the UI.")
+    message: str | None = Field(None, description="Human-readable status message for the UI.")
 
 
 class StateValues(BaseModel):
     """Full snapshot of AgentState values at a given point in time."""
-    task: Optional[str] = None
-    lnode: Optional[str] = None
-    plan: Optional[str] = None
-    draft: Optional[str] = None
-    critique: Optional[str] = None
-    content: Optional[List[str]] = None
-    queries: Optional[List[str]] = None
-    revision_number: Optional[int] = None
-    max_revisions: Optional[int] = None
-    count: Optional[int] = None
+    task: str | None = None
+    lnode: str | None = None
+    plan: str | None = None
+    draft: str | None = None
+    critique: str | None = None
+    content: list[str] | None = None
+    queries: list[str] | None = None
+    revision_number: int | None = None
+    max_revisions: int | None = None
+    count: int | None = None
 
 
 class StateSnapshot(BaseModel):
@@ -126,8 +127,8 @@ class StateSnapshot(BaseModel):
     checkpoint_id: str = Field(..., description="Unique ID for this checkpoint (thread_ts).")
     thread_id: str
     step: int = Field(..., description="Step index in the execution sequence.")
-    last_node: Optional[str] = None
-    next_node: Optional[str] = None
+    last_node: str | None = None
+    next_node: str | None = None
     revision_number: int = 0
     step_count: int = 0
     values: StateValues
@@ -137,7 +138,7 @@ class HistoryResponse(BaseModel):
     """Response for GET /api/history/{thread_id} — ordered list of snapshots."""
     thread_id: str
     total_snapshots: int
-    snapshots: List[StateSnapshot]
+    snapshots: list[StateSnapshot]
 
 
 class GraphNodeSchema(BaseModel):
@@ -153,7 +154,7 @@ class GraphEdgeSchema(BaseModel):
     source: str = Field(..., alias="from")
     target: str = Field(..., alias="to")
     edge_type: str = Field(..., alias="type")
-    condition: Optional[str] = None
+    condition: str | None = None
 
     class Config:
         populate_by_name = True
@@ -161,25 +162,25 @@ class GraphEdgeSchema(BaseModel):
 
 class GraphSchemaResponse(BaseModel):
     """Full graph topology returned by GET /api/graph/schema."""
-    nodes: List[dict]
-    edges: List[dict]
+    nodes: list[dict]
+    edges: list[dict]
     entry_point: str
-    all_nodes: List[str]
-    default_interrupt_after: List[str]
+    all_nodes: list[str]
+    default_interrupt_after: list[str]
 
 
 class ThreadInfo(BaseModel):
     thread_id: str
-    task: Optional[str] = None
+    task: str | None = None
 
 
 class ThreadListResponse(BaseModel):
     """Response for GET /api/threads."""
-    threads: List[ThreadInfo]
+    threads: list[ThreadInfo]
     total: int
 
 
 class ErrorResponse(BaseModel):
     """Standard error envelope."""
     error: str
-    detail: Optional[str] = None
+    detail: str | None = None

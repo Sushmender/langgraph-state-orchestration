@@ -13,7 +13,6 @@ from __future__ import annotations
 import json
 import os
 import re
-from typing import List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_groq import ChatGroq
@@ -21,16 +20,16 @@ from langgraph.graph import END
 from tavily import TavilyClient
 
 from graph.prompts import (
+    NODE_GENERATE,
+    NODE_PLANNER,
+    NODE_REFLECT,
+    NODE_RESEARCH_CRITIQUE,
+    NODE_RESEARCH_PLAN,
     PLAN_PROMPT,
     REFLECTION_PROMPT,
     RESEARCH_CRITIQUE_PROMPT,
     RESEARCH_PLAN_PROMPT,
     WRITER_PROMPT,
-    NODE_PLANNER,
-    NODE_RESEARCH_PLAN,
-    NODE_GENERATE,
-    NODE_REFLECT,
-    NODE_RESEARCH_CRITIQUE,
 )
 from graph.state import AgentState
 
@@ -54,7 +53,7 @@ def _strip_thinking(text: str) -> str:
 
 
 # ── Helper: parse search queries from LLM plain-text response ───────────────
-def _parse_queries(raw: str) -> List[str]:
+def _parse_queries(raw: str) -> list[str]:
     """
     Strip thinking traces first, then try JSON, then numbered/bulleted list,
     then newline-split as a last resort.
@@ -155,7 +154,7 @@ def research_plan_node(state: AgentState) -> dict:
     )
     query_list = _parse_queries(response.content)
 
-    content: List[str] = list(state.get("content") or [])
+    content: list[str] = list(state.get("content") or [])
     for q in query_list:
         results = tavily.search(query=q, max_results=2)
         for r in results["results"]:
@@ -178,9 +177,15 @@ def generation_node(state: AgentState) -> dict:
     """
     llm = _get_llm()
     content_text = "\n\n".join(state.get("content") or [])
-    user_message = HumanMessage(
-        content=f"{state['task']}\n\nHere is my plan:\n\n{state['plan']}"
-    )
+
+    # Build the user message — always include task + plan; append critique when
+    # present so the writer treats it as a hard revision brief.
+    user_content = f"{state['task']}\n\nHere is my plan:\n\n{state['plan']}"
+    critique = state.get("critique", "").strip()
+    if critique:
+        user_content += f"\n\nCRITIQUE TO ADDRESS:\n{critique}"
+
+    user_message = HumanMessage(content=user_content)
     messages = [
         SystemMessage(content=WRITER_PROMPT.format(content=content_text)),
         user_message,
@@ -251,7 +256,7 @@ def research_critique_node(state: AgentState) -> dict:
     )
     query_list = _parse_queries(response.content)
 
-    content: List[str] = list(state.get("content") or [])
+    content: list[str] = list(state.get("content") or [])
     for q in query_list:
         results = tavily.search(query=q, max_results=2)
         for r in results["results"]:

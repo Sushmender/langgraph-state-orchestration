@@ -22,7 +22,6 @@ from pathlib import Path
 
 from langgraph.checkpoint.sqlite import SqliteSaver
 
-
 # Resolve DB path relative to this file: backend/database/graph_state.db
 _DB_PATH = Path(__file__).resolve().parent.parent / "database" / "graph_state.db"
 

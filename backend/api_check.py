@@ -1,7 +1,9 @@
 import os
+
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from tavily import TavilyClient
+
 
 def check_apis():
     print("====================================")
@@ -19,7 +21,7 @@ def check_apis():
         try:
             # Initialize Groq client and test it
             chat = ChatGroq(model="qwen/qwen3.6-27b", temperature=0, api_key=groq_key)
-            response = chat.invoke("Say the word 'success'")
+            chat.invoke("Say the word 'success'")
             print("[SUCCESS] Groq API: Connection Successful!")
         except Exception as e:
             print(f"[ERROR] Groq API Error: {e}")
@@ -30,7 +32,7 @@ def check_apis():
         try:
             # Initialize Tavily client and test it
             tavily = TavilyClient(api_key=tavily_key)
-            response = tavily.search(query="Test", max_results=1)
+            tavily.search(query="Test", max_results=1)
             print("[SUCCESS] Tavily API: Connection Successful!")
         except Exception as e:
             print(f"[ERROR] Tavily API Error: {e}")

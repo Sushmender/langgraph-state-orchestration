@@ -7,7 +7,7 @@ that flows through the LangGraph essay-writing pipeline.
 from __future__ import annotations
 
 import operator
-from typing import Annotated, List, Optional, TypedDict
+from typing import Annotated, TypedDict
 
 
 class AgentState(TypedDict):
@@ -36,9 +36,9 @@ class AgentState(TypedDict):
     plan: str
     draft: str
     critique: str
-    content: List[str]
-    queries: List[str]
+    content: list[str]
+    queries: list[str]
     revision_number: int
     max_revisions: int
-    force_end: Optional[bool]
+    force_end: bool | None
     count: Annotated[int, operator.add]

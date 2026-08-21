@@ -28,12 +28,11 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes.workflow import router as workflow_router
-from api.routes.history import router as history_router
 from api.routes.graph import router as graph_router
+from api.routes.history import router as history_router
+from api.routes.workflow import router as workflow_router
 from checkpointer.factory import get_checkpointer
 from graph.builder import build_graph
-
 
 # ── Load .env before anything else ───────────────────────────────────────────
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))

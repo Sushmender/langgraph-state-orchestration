@@ -1,21 +1,3 @@
-CRITIQUE:
-The current draft lacks specificity and reads too academically. Here is the critique for the next revision:
-
-WEAKNESSES:
-- The introduction is too broad — needs a compelling hook (a shocking statistic or real story)
-- Missing concrete examples of real Gen Z experiences and voices
-- The conclusion is weak — needs a clear call-to-action for parents, educators, and platforms
-- Statistics are cited but not analyzed — explain what they MEAN for Gen Z
-
-REQUIREMENTS FOR NEXT DRAFT:
-- Start with a story or a single striking fact
-- Include at least one specific platform example (TikTok, Instagram, Discord)
-- End with 3 actionable recommendations
-- Tone: conversational and relatable, NOT academic
-
-
-DRAFT:
-
 Imagine scrolling through your feed at 2 a.m., feeling a sudden pang of jealousy as you watch someone else’s perfect vacation. You’re not alone in this late-night spiral. In fact, 60% of Gen Z adults spend at least four hours a day on social media, with 22% logging seven or more hours. It’s a paradox for our generation: we are the most connected people in history, yet many of us feel profoundly isolated. While 32% of us say these platforms help us find community, 27% admit they hurt our mental health. We are caught in a double-edged sword where the tools meant to bring us together are often tearing us apart.
 
 The problem isn’t just the time we spend online; it’s how specific platforms like Instagram warp our self-perception. Instagram’s emphasis on aesthetics creates a "highlight reel" effect that fuels anxiety and depression. Studies show that 32% of Gen Z women and 16% of men report negative impacts on their body image because of these curated images. It’s not just about looks, though. The pressure to maintain a persona adds to our stress, with 46% of us experiencing anxiety and 41% suffering from low self-esteem. We compare our behind-the-scenes struggles with everyone else’s polished highlights, leading to a cycle of inadequacy that no amount of likes can fix.

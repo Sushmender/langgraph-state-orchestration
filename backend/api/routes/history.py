@@ -178,6 +178,15 @@ def time_travel(thread_id: str, body: TimeTravelRequest, request: Request):
 
     # Determine as_node: use the checkpoint's lnode so the graph pointer is correct
     as_node = restored_values.get("lnode") or "planner"
+    
+    # HITL FIX: If the user provides a manual override, they are doing the job of
+    # that node. We must advance the `as_node` pointer to match, otherwise the 
+    # graph will run the AI node and immediately overwrite their manual edits!
+    if body.state_overrides:
+        if "critique" in body.state_overrides:
+            as_node = "reflect"
+        elif "plan" in body.state_overrides:
+            as_node = "planner"
 
     try:
         graph.update_state(thread_config, restored_values, as_node=as_node)
@@ -237,9 +246,7 @@ def list_threads(request: Request):
             task = None
             try:
                 state = graph.get_state(_make_thread_config(tid))
-                if state and hasattr(state, 'values') and hasattr(state.values, 'get'):
-                    task = state.values.get("task")
-                elif state and isinstance(state.values, dict):
+                if state and hasattr(state, 'values') and hasattr(state.values, 'get') or state and isinstance(state.values, dict):
                     task = state.values.get("task")
             except Exception:
                 pass

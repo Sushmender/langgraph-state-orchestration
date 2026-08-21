@@ -10,13 +10,7 @@ full control over which nodes pause for human review.
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, List
-
-if TYPE_CHECKING:
-    # Only imported for static type-checkers (mypy/pylance).
-    # NOT imported at runtime — avoids heavy module-load side effects
-    # when api/routes/graph.py pulls in this module.
-    from langgraph.checkpoint.base import BaseCheckpointSaver
+from typing import Any
 
 from langgraph.graph import END, StateGraph
 
@@ -42,7 +36,7 @@ from graph.state import AgentState
 
 def build_graph(
     checkpointer: Any,
-    interrupt_after: List[str] | None = None,
+    interrupt_after: list[str] | None = None,
 ):
     """
     Compile and return the essay-writing LangGraph.
