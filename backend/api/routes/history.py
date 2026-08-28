@@ -52,7 +52,9 @@ def _state_to_snapshot(state, thread_id: str) -> StateSnapshot:
         last_node=vals.get("lnode"),
         next_node=next_nodes[0] if next_nodes else None,
         revision_number=vals.get("revision_number", 0),
-        step_count=vals.get("count", 0),
+        # Use LangGraph's native metadata step counter — not the custom `count`
+        # reducer which inflates on every update_state call.
+        step_count=state.metadata.get("step", 0),
         values=StateValues(
             task=vals.get("task"),
             lnode=vals.get("lnode"),
@@ -204,7 +206,7 @@ def time_travel(thread_id: str, body: TimeTravelRequest, request: Request):
         last_node=vals.get("lnode"),
         next_node=next_node,
         revision_number=vals.get("revision_number", 0),
-        step_count=vals.get("count", 0),
+        step_count=new_state.metadata.get("step", 0) if new_state.metadata else vals.get("count", 0),
         status="interrupted" if next_node else "completed",
         message=(
             f"✅ Time-traveled to checkpoint '{body.checkpoint_id}'. "

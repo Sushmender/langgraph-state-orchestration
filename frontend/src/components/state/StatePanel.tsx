@@ -97,7 +97,7 @@ function EmptyState({ label }: { label: string }) {
 }
 
 export function StatePanel() {
-  const { stateValues, appStatus, activeStateTab, setActiveStateTab, openEditModal } =
+  const { stateValues, workflowStatus, appStatus, activeStateTab, setActiveStateTab, openEditModal } =
     useWorkflowStore();
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -317,7 +317,9 @@ export function StatePanel() {
           ) : (
             <span>Rev {stateValues.revision_number ?? 0}</span>
           )}
-          <span>Steps {stateValues.count ?? 0}</span>
+          {/* Use workflowStatus.step_count which is sourced from LangGraph's
+              metadata["step"] — only counts real node executions, not update_state calls */}
+          <span>Steps {workflowStatus?.step_count ?? stateValues.count ?? 0}</span>
         </div>
       )}
     </div>

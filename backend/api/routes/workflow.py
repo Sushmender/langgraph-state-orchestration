@@ -71,12 +71,18 @@ def _build_status(thread_id: str, graph, thread_config: dict) -> WorkflowStatus:
             f"You can inspect/modify state, then POST /resume to continue."
         )
 
+    # Use LangGraph's built-in metadata step counter instead of the custom
+    # `count` reducer field — the latter gets incremented by every update_state
+    # call (HITL edits, time-travel, accept) which inflates it artificially.
+    # metadata["step"] only increments on real node executions.
+    step_count = state.metadata.get("step", 0) if state.metadata else vals.get("count", 0)
+
     return WorkflowStatus(
         thread_id=thread_id,
         last_node=last_node,
         next_node=next_node,
         revision_number=vals.get("revision_number", 0),
-        step_count=vals.get("count", 0),
+        step_count=step_count,
         status=status,
         message=message,
     )
