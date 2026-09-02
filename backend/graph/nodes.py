@@ -2,7 +2,7 @@
 graph/nodes.py
 --------------
 The five node functions that form the essay-writing pipeline, plus the
-conditional edge function.  All LLM calls use Groq (qwen/qwen3.6-27b)
+conditional edge function.  All LLM calls use Groq (qwen/qwen3.8-27b)
 instead of OpenAI — keys already verified in api_check.py.
 
 Each node returns a *partial* dict; LangGraph merges it into AgentState.
@@ -97,7 +97,7 @@ def _parse_queries(raw: str) -> list[str]:
 # ── Shared clients (initialised lazily per request to stay thread-safe) ───────────
 def _get_llm() -> ChatGroq:
     return ChatGroq(
-        model="qwen/qwen3.6-27b",
+        model="qwen/qwen3.8-27b",
         temperature=0,
         api_key=os.environ["GROQ_API_KEY"],
         # Disable Qwen's extended thinking mode so responses contain

@@ -20,7 +20,7 @@ def check_apis():
     else:
         try:
             # Initialize Groq client and test it
-            chat = ChatGroq(model="qwen/qwen3.6-27b", temperature=0, api_key=groq_key)
+            chat = ChatGroq(model="qwen/qwen3.8-27b", temperature=0, api_key=groq_key)
             chat.invoke("Say the word 'success'")
             print("[SUCCESS] Groq API: Connection Successful!")
         except Exception as e:
